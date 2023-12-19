@@ -1,0 +1,17 @@
+{% extends 'casino_data/base.html' %}
+{% load static %}
+
+{% block link %}
+<link href="{% static 'casino_data/css/casino_css/casino_name_.css' %}" rel="stylesheet">
+<link href="{% static 'casino_data/css/casino_css/casino2_name_.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5 text-center border border-3">
+        <h1>{{ name_casino }}</h1>
+    </div>
+
+    <div>
+        {{ html_content }}
+    </div>
+{% endblock %}

@@ -1,0 +1,25 @@
+
+.inline-group {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.custom-button {
+  margin-top: 20px;
+  padding: 10px;
+  cursor: pointer;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.custom-button:hover {
+  background-color: #45a049;
+}
+
+#file-input {
+  display: none;
+}

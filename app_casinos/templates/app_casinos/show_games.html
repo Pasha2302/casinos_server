@@ -1,0 +1,32 @@
+{% extends 'casino_data/base.html' %}
+{% load static %}
+
+{% block link %}
+{% endblock %}
+
+{% block content %}
+<main role="main">
+
+  <div class="container mt-3 text-center border border-3">
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+
+      <div class="col-sm-4 mt-3 mb-3">
+        <div class="card h-100">
+          <img src="{% static 'app_test/img/1.jpeg' %}" class="card-img-top" alt="...">
+          <div class="card-body">
+            <h5 class="card-title">{{ data_game.title|upper }}</h5>
+            <p class="card-text">{{ data_game.providers }}</p>
+            <p class="card-text">{{ data_game.vendors.all }}</p>
+            <p class="card-text">{{ data_game.type_game }}</p>
+            <p class="card-text">{{ data_game.casino.all }}</p>
+          </div>
+          <div class="card-footer">
+            <small class="text-body-secondary">Last updated 3 mins ago</small>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'app_casinos/css/admin/admin.css' %}">
+{% endblock %}
+
+{% block field_sets %}
+  {% for fieldset in adminform %}
+    {% include "admin/includes/fieldset.html" %}
+  {% endfor %}
+
+<script src="{% static 'app_casinos/js/admin/admin.js' %}"></script>
+
+{% endblock %}
