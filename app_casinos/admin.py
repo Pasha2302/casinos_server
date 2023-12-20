@@ -1,10 +1,12 @@
-import json
-
+# import json
 from django import forms
-from django.db import transaction
-from django.http import JsonResponse
-from django.urls import path
-from django.views.decorators.csrf import csrf_exempt
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.utils.text import slugify
+
+# from django.db import transaction
+# from django.http import JsonResponse
+# from django.urls import path
+# from django.views.decorators.csrf import csrf_exempt
 
 from app_casinos.inline_models_admin import *
 
@@ -13,6 +15,11 @@ from app_casinos.inline_models_admin import *
 class AccountDataAdmin(admin.ModelAdmin):
     list_display = ('id', 'log')
     list_display_links = ('id', 'log')
+
+@admin.register(SisterCasino)
+class SisterCasinoAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    list_display_links = ('id', 'name')
 
 @admin.register(ClassicCurrency)
 class ClassicCurrencyAdmin(admin.ModelAdmin):
@@ -26,10 +33,36 @@ class CryptoCurrenciesAdmin(admin.ModelAdmin):
     search_fields = ('symbol',)
 #GH9nZiqEdzRQ6n4
 
+
+
+class ModelDataValidationForm(forms.ModelForm):
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get('name')
+        print(f"\nPostForm: {name=}")
+        # Проверяем, существует ли запись с таким слагом
+        if name:
+            slug = slugify(name)
+            if Country.objects.filter(slug=slug).exists():
+                raise forms.ValidationError({'name': "Record with this name already exists"})
+        return cleaned_data
+
 @admin.register(Country)
-class BlockedCountryAdmin(admin.ModelAdmin):
+class CountryAdmin(admin.ModelAdmin):
+    form = ModelDataValidationForm
     readonly_fields = ('slug',)
     list_display = ('id', 'name', )
+
+    # def save_model(self, request, obj, form, change):
+    #     try:
+    #         with transaction.atomic():
+    #             obj.save()
+    #             return self.response_add(request, obj, post_url_continue=None)
+    #     except IntegrityError as e:
+    #         self.message_user(request, f"Error: {e}", messages.ERROR)
+    #         return
+
+
 
 @admin.register(GameType)
 class GameTypeAdmin(admin.ModelAdmin):
@@ -45,6 +78,7 @@ class ProviderAdmin(admin.ModelAdmin):
 class GameAdmin(admin.ModelAdmin):
     readonly_fields = ('slug',)
     list_display = ('id', 'name', )
+    search_fields = ('name',)
 
 @admin.register(Language)
 class LanguageAdmin(admin.ModelAdmin):
@@ -91,16 +125,34 @@ class CustomCasinoAdminForm(forms.ModelForm):
         model = Casino
         fields = '__all__'
 
+class CasinoAdminForm(forms.ModelForm):
+    class Meta:
+        model = Casino
+        fields = '__all__'
+
+    games = forms.ModelMultipleChoiceField(
+        queryset=Game.objects.all(),
+        widget=FilteredSelectMultiple("Games", is_stacked=False),
+        required=False
+    )
+
 
 @admin.register(Casino)
 class CasinoAdmin(admin.ModelAdmin):
+    # form = CasinoAdminForm
     class Media:
         js = ('app_casinos/js/admin/admin2.js',)
         css = {
             'all': ('app_casinos/css/admin/admin.css',),
         }
 
-    readonly_fields = ('slug', )            # Поле только для чтения
+    # Поле только для чтения
+    readonly_fields = (
+        'slug', 'owner', 'established',
+        'games', 'game_providers',
+        'payment_methods',
+    )
+
     list_display = ('id', 'name', 'url')
     list_display_links = ('id', 'name')
 
@@ -123,7 +175,7 @@ class CasinoAdmin(admin.ModelAdmin):
         }),
 
         ('Games Info', {
-            'fields': ('game_types', 'game_providers', 'games',)
+            'fields': ('game_types', 'game_providers', 'games') # 'games',
         }),
 
         ('Responsible Gambling Tools', {
@@ -133,16 +185,20 @@ class CasinoAdmin(admin.ModelAdmin):
         }),
     )
 
+    autocomplete_fields = ('games',)
     filter_horizontal = (
-        "game_types", "game_providers", "games",
-        "classic_currency", "crypto_currencies", "payment_methods",
+        "game_types", #"game_providers",# "games",
+        "classic_currency", "crypto_currencies", #"payment_methods",
         "licenses", "blocked_countries", "language_website", "language_live_chat"
     )
 
+
     inlines = [
         BonusesInline, WithdrawalLimitInline, SisterCasinoInline,
-        MinWageringInline, MinDepInline, AccountDataInline,
+        MinWageringInline, MinDepInline, AccountDataInline, #GameInline
     ]
+
+
     search_fields = ('name',)
 
     # def save_model(self, request, obj, form, change):

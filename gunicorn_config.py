@@ -25,7 +25,7 @@ keepalive = 2
 
 
 # Запуск асинхронного Uvicorn:
-# gunicorn -w 1 game_slots.asgi:application -k uvicorn.workers.UvicornWorker -c gunicorn_config.py
+# gunicorn my_app.asgi:application -k uvicorn.workers.UvicornWorker -c gunicorn_config.py
 
 # Запуск не асинхронного Gunicorn:
-# gunicorn game_slots.wsgi:application -c gunicorn_config.py
+# gunicorn my_app.wsgi:application -c gunicorn_config.py

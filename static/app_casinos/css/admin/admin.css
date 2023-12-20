@@ -23,3 +23,15 @@
 #file-input {
   display: none;
 }
+
+/*id_game_providers, #id_classic_currency, #id_crypto_currencies, #id_payment_methods */
+/* Добавляет внутренний скролл к полю autocomplete */
+#id_games,  {
+    max-height: 200px; /* Задайте максимальную высоту поля */
+    overflow-y: auto; /* Добавляет внутренний скролл, если содержимое превышает максимальную высоту */
+}
+
+.readonly textarea {
+    max-height: 200px; /* Задайте максимальную высоту поля */
+    overflow-y: auto; /* Добавляет внутренний скролл, если содержимое превышает установленную высоту */
+}

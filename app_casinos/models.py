@@ -221,8 +221,10 @@ class Casino(models.Model):
     link_bonuses = models.URLField(
         verbose_name="URL Bonuses Main Page", null=True, blank=True, help_text=text_url_bonus_main_page)
 
-    owner = models.CharField(max_length=255, verbose_name="Casino Owner", help_text=text_casino_owner)
-    established = models.PositiveIntegerField(verbose_name="Year of Establishment", help_text=text_casino_establish_year)
+    owner = models.CharField(
+        max_length=255, verbose_name="Casino Owner", help_text=text_casino_owner, null=True, blank=True)
+    established = models.PositiveIntegerField(
+        verbose_name="Year of Establishment", help_text=text_casino_establish_year, null=True, blank=True)
 
     language_website = models.ManyToManyField("Language", related_name='casino_website', help_text=text_casino_website_languages)
     language_live_chat = models.ManyToManyField("Language", related_name='casino_live_chat', help_text=text_casino_livechat_languages)

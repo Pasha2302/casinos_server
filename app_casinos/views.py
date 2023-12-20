@@ -37,6 +37,6 @@ def save_data_to_db(model_class, key_all_data):
 
 
 def index(request):
-    save_data_to_db(key_all_data="crypto_codes", model_class=CryptoCurrency)
+    # save_data_to_db(key_all_data="crypto_codes", model_class=CryptoCurrency)
     return render(request, 'app_casinos/base.html', context={"title": "Home"})
 

@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-@gih%fg1fk7iefkx0jhf#($(6c+k!0g4hoel7229$&5@6&sew9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['9f63-89-113-159-32.ngrok-free.app', '0.0.0.0', '127.0.0.1',]
+ALLOWED_HOSTS = ['e871-89-113-159-32.ngrok-free.app', '0.0.0.0', '127.0.0.1',]
 
 
 # Application definition
@@ -126,6 +126,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 # Включите сжатие (необязательно, но рекомендуется для улучшения производительности) в настройках:
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_USE_CDN = True
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 30000
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
