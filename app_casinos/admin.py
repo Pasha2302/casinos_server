@@ -1,6 +1,11 @@
 # import json
+
 from django import forms
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.core.exceptions import ValidationError
+from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
+
 from django.utils.text import slugify
 
 # from django.db import transaction
@@ -31,37 +36,32 @@ class CryptoCurrenciesAdmin(admin.ModelAdmin):
     list_display = ('id', 'symbol', 'name')
     list_display_links = ('id', 'symbol')
     search_fields = ('symbol',)
-#GH9nZiqEdzRQ6n4
 
 
+# class ModelDataValidationForm(forms.ModelForm):
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         instance = getattr(self, 'instance', None)
 
-class ModelDataValidationForm(forms.ModelForm):
-    def clean(self):
-        cleaned_data = super().clean()
-        name = cleaned_data.get('name')
-        print(f"\nPostForm: {name=}")
-        # Проверяем, существует ли запись с таким слагом
-        if name:
-            slug = slugify(name)
-            if Country.objects.filter(slug=slug).exists():
-                raise forms.ValidationError({'name': "Record with this name already exists"})
-        return cleaned_data
+        # if instance:
+        #     name, name2 = cleaned_data.get('name'), cleaned_data.get('name2')
+        #     print(f"\nPostForm: {name=}, {name2=}")
+        #     if name2: return cleaned_data
+        #     # Проверяем, существует ли запись с таким слагом
+        #     if name:
+        #         slug = slugify(name)
+        #         if Country.objects.filter(slug=slug).exists():
+        #             raise forms.ValidationError({'name': "Record with this name already exists"})
+
+        # return cleaned_data
 
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
-    form = ModelDataValidationForm
+    # form = ModelDataValidationForm
     readonly_fields = ('slug',)
-    list_display = ('id', 'name', )
-
-    # def save_model(self, request, obj, form, change):
-    #     try:
-    #         with transaction.atomic():
-    #             obj.save()
-    #             return self.response_add(request, obj, post_url_continue=None)
-    #     except IntegrityError as e:
-    #         self.message_user(request, f"Error: {e}", messages.ERROR)
-    #         return
-
+    list_display = ('id', 'name', 'name2', 'name3')
+    list_display_links = ('name', 'name2', 'name3')
+    search_fields = ('name',)
 
 
 @admin.register(GameType)
@@ -139,9 +139,8 @@ class CasinoAdminForm(forms.ModelForm):
 
 @admin.register(Casino)
 class CasinoAdmin(admin.ModelAdmin):
-    # form = CasinoAdminForm
     class Media:
-        js = ('app_casinos/js/admin/admin2.js',)
+        js = ('app_casinos/js/admin/admin3.js',)
         css = {
             'all': ('app_casinos/css/admin/admin.css',),
         }
@@ -156,32 +155,56 @@ class CasinoAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'url')
     list_display_links = ('id', 'name')
 
+    inlines = [
+        BonusesInline, WithdrawalLimitInline, SisterCasinoInline,
+        MinWageringInline, MinDepInline, AccountDataInline,  # GameInline
+    ]
+
     fieldsets = (
+
         ('Basic Information', {
-            'fields': ('slug', 'name', 'url', 'link_casino_guru', 'link_tc',
+            'fields': ('slug', 'name', 'link_loyalty', 'url', 'link_casino_guru', 'link_tc',
                        'link_bonus_tc', 'link_bonuses', 'owner', 'established',
-                       'language_website', 'language_live_chat', 'blocked_countries', 'licenses',),
+                       'live_chat_competence', 'special_notes',
+                       ),
         }),
 
-        ('Other Info', {
+        ('LANGUAGES', {
             'fields': (
-                'using_vpn', 'sportsbook', 'bonus_hunt_active_bonus',
-                'live_chat_competence', 'special_notes',
+                'language_website', 'language_live_chat',
             )
         }),
 
-        ('Payments', {
+        ('RESTRICTED COUNTRIES', {
+            'fields': (
+                'blocked_countries',
+            )
+        }),
+
+        ('CASINO LICENSE', {
+            'fields': (
+                'licenses',
+            )
+        }),
+
+        ('OTHER INFO', {
+            'fields': (
+                'using_vpn', 'sportsbook', 'bonus_hunt_active_bonus', 'tournaments'
+            )
+        }),
+
+        ('PAYMENTS', {
             'fields': ('classic_currency', 'crypto_currencies', 'payment_methods',)
         }),
 
-        ('Games Info', {
+        ('GAMES INFO', {
             'fields': ('game_types', 'game_providers', 'games') # 'games',
         }),
 
-        ('Responsible Gambling Tools', {
+        ('RESPONSIBLE GAMBLING TOOLS', {
             'fields': ('wager_limit', 'loss_limit', 'session_limit', 'self_exclusion',
                        'cool_off', 'reality_check', 'self_assessment', 'withdrawal_lock',
-                       'tournaments'),
+                       ),
         }),
     )
 
@@ -192,14 +215,19 @@ class CasinoAdmin(admin.ModelAdmin):
         "licenses", "blocked_countries", "language_website", "language_live_chat"
     )
 
-
-    inlines = [
-        BonusesInline, WithdrawalLimitInline, SisterCasinoInline,
-        MinWageringInline, MinDepInline, AccountDataInline, #GameInline
-    ]
-
-
     search_fields = ('name',)
+
+    def save_model(self, request, obj, form, change):
+        try:
+            account_data = obj.withdrawal_limit
+        except Exception as err:
+            form.add_error(None, "Record with this name already exists")
+            self.message_user(request, "Record with this name already exists. Please fill in all fields in Withdrawal limit.", level='ERROR')
+            # raise forms.ValidationError("Record with this name already exists")
+            return HttpResponseRedirect(request.path)
+
+        super().save_model(request, obj, form, change)
+
 
     # def save_model(self, request, obj, form, change):
     #     super().save_model(request, obj, form, change)

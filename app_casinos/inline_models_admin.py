@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from app_casinos.models import (Casino, Bonus, WithdrawalLimit, SisterCasino,
                                 MinWagering, MinDep, Country, Language, AccountData,
                                 GameType, Provider, Game, ClassicCurrency, CryptoCurrency, LicensingAuthority)
@@ -14,6 +14,7 @@ class GameInline(admin.TabularInline):
 class AccountDataInline(admin.TabularInline):
     model = AccountData
     extra = 1
+
 
 class LicensesInline(admin.TabularInline):
     model = Casino.licenses.through

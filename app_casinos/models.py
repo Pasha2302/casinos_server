@@ -1,8 +1,11 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import QuerySet
 from django.utils.text import slugify
 from app_casinos.description_model_fields import *
 
+# from django.db.models.signals import pre_save
+# from django.dispatch import receiver
 
 CHOICES_SOURCE = [
     ('terms_and_conditions', 'Terms & Conditions'),
@@ -57,13 +60,24 @@ class WithdrawalLimit(models.Model):
     weekly = models.IntegerField(null=True, blank=True)
     monthly = models.IntegerField(null=True, blank=True)
 
-    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE)
+    unlimited = models.BooleanField(default=False)
+    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if not self.selected_source or self.selected_source not in dict(CHOICES_SOURCE):
-            raise ValueError("Exactly one option must be selected.")
+        # Если unlimited установлено в True, установите null=True и blank=True для всех полей
+        if self.unlimited:
+            self.daily = None
+            self.weekly = None
+            self.monthly = None
+            self.selected_source = None
+
         super().save(*args, **kwargs)
 
+    def clean(self):
+        values = (self.daily, self.weekly, self.monthly, self.selected_source)
+        print(values)
+        if not self.unlimited and not all(values):
+            raise ValidationError('All fields must be filled when unlimited is False.')
     def __str__(self):
         return f"Withdrawal Limits: {self.selected_source}"
 
@@ -80,8 +94,9 @@ class SisterCasino(models.Model):
         super().save(*args, **kwargs)
 
 class MinWagering(models.Model):
-    min_value = models.IntegerField(null=True, blank=True)
-    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE)
+    min_value = models.IntegerField(null=True)
+    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE, null=True)
+
     casino = models.OneToOneField(
         "Casino", on_delete=models.CASCADE, null=True, related_name='min_wagering', to_field='slug')
 
@@ -94,7 +109,7 @@ class MinWagering(models.Model):
 class MinDep(models.Model):
     currency_choices = [
         ('$', 'USD'),
-        ('RUB', 'RUB'),
+        ('RUB', 'EUR'),
         ('BNB', 'BNB'),
     ]
 
@@ -106,21 +121,21 @@ class MinDep(models.Model):
     selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE)
 
     def save(self, *args, **kwargs):
-        if not self.selected_source or self.selected_source not in dict(CHOICES_SOURCE):
-            raise ValueError("Exactly one option must be selected.")
         super().save(*args, **kwargs)
 
 
 class Country(models.Model):
     slug = models.SlugField(unique=True, db_index=True, blank=True, max_length=255)
-    name = models.CharField(max_length=255, verbose_name="Country")
+    name = models.CharField(max_length=255, verbose_name="Country Name")
+    name2 = models.CharField(max_length=255, verbose_name="Country Name-2", null=True, blank=True)
+    name3 = models.CharField(max_length=255, verbose_name="Country Name-3", null=True, blank=True)
     class Meta:
-        ordering = ["id"]
+        ordering = ["name"]
         verbose_name = "Country"
         verbose_name_plural = "Countries"
 
     def __str__(self):
-        return self.name
+        return f"{self.name} | {self.name2}"
     def save(self, *args, **kwargs):
         save_slug(self, super(), additionally=None, *args, **kwargs)
 
@@ -190,11 +205,11 @@ class AccountData(models.Model):
     casino = models.OneToOneField(
         "Casino", on_delete=models.CASCADE, null=True, related_name='account_data', to_field='slug')
     log = models.CharField(max_length=50, verbose_name="Login")
-    password = models.CharField(max_length=15, verbose_name="Password", blank=True, null=True)
+    password = models.CharField(max_length=15, verbose_name="Password", default='')
     def __str__(self):
         return self.log
     class Meta:
-        ordering = ["id"]
+        ordering = ["log"]
         verbose_name = "Account Data"
         verbose_name_plural = "Account Data"
 
@@ -215,6 +230,7 @@ class Casino(models.Model):
     sportsbook = models.BooleanField(default=False, help_text=text_casino_sportsbook)
 
     url = models.URLField(verbose_name="URL Website", help_text=text_url_casino)
+    link_loyalty = models.URLField(verbose_name="URL Loyalty", null=True, blank=True)
     link_casino_guru = models.URLField(verbose_name="URL Casino-Guru", help_text=text_url_casinoguru)
     link_tc = models.URLField(verbose_name="URL General T&C", help_text=text_url_general_tc)
     link_bonus_tc = models.URLField(verbose_name="URL Bonus T&C", blank=True, help_text=text_url_bonus_tc)

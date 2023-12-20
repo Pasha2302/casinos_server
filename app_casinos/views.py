@@ -21,22 +21,26 @@ def download_json_data(path_file) -> list[dict] | dict:
 
 def save_data_to_db(model_class, key_all_data):
     path_file = f"/home/pavelpc/PycharmProjects/Working_Projects/Django_Casinos_Server/{key_all_data}.json"
-    data_json = download_json_data(path_file=path_file)['crypto_codes']
+    data_json = download_json_data(path_file=path_file)
+    data_db = model_class.objects.values()
+    print(data_db)
 
-    for data in data_json:
-        try:
-            with transaction.atomic():
-                print(data)
-                # new_obj = model_class(name=data)
-                new_obj = model_class(symbol=data)
-                # Сохранение объекта в базе данных
-                new_obj.save()
-        except Exception as err:
-            print(f"Error saving {data}: {err}")
-            pass
+    for data_d in data_db:
+        for data_j in data_json:
+            if data_d['symbol'] == data_j['symbol']:
+                try:
+                    with transaction.atomic():
+                        print(data_j)
+                        record = model_class.objects.get(pk=data_d['id'])
+                        record.name = data_j['name']
+                        record.save()
+                        break
+                except Exception as err:
+                    print(f"Error saving {data_j}: {err}")
+                    pass
 
 
 def index(request):
-    # save_data_to_db(key_all_data="crypto_codes", model_class=CryptoCurrency)
+    save_data_to_db(key_all_data="cryptos1", model_class=CryptoCurrency)
     return render(request, 'app_casinos/base.html', context={"title": "Home"})
 
