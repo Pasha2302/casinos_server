@@ -1,10 +1,14 @@
 asgiref==3.7.2
 click==8.1.7
 Django==5.0
+django-appconf==1.0.6
+django-extensions==3.2.3
+django-select2==8.1.2
 djangorestframework==3.14.0
 gunicorn==21.2.0
 h11==0.14.0
 packaging==23.2
+Pillow==10.1.0
 psycopg2==2.9.9
 pytz==2023.3.post1
 sqlparse==0.4.4
