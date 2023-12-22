@@ -28,12 +28,12 @@ class CasinoImageInline(admin.TabularInline):
             'fields': ('display_image', 'image',)
         }),
     )
-
     def display_image(self, obj):
         if obj.image:
             return format_html(
                 '<img src="{}" style="max-height: 140px; max-width: 180px;" />', obj.image.url)
         else: return None
+
 
 class LicensesInline(admin.TabularInline):
     model = Casino.licenses.through
@@ -67,5 +67,5 @@ class MinDepInline(admin.TabularInline):
     model = MinDep
     extra = 1
     filter_horizontal = ('symbol', )
-    max_num = 1  # Запрет добавления новых записей
-    can_delete = False  # Запрет удаления записей
+    max_num = 1
+    can_delete = False

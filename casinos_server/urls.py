@@ -7,8 +7,8 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path('', RedirectView.as_view(url='/admin/')),
     path('admin/', admin.site.urls),
-    path('select2/', include('django_select2.urls')),  # Добавьте эту строку
-    # Ваши другие URL-маршруты
+    path('select2/', include('django_select2.urls')),
+
 ]
 
 if settings.DEBUG:
