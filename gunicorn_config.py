@@ -17,6 +17,8 @@ pythonpath = '/home/pavelpc/PycharmProjects/Working_Projects/Django_Casinos_Serv
 # Должен соответствовать настройке STATIC_ROOT в файле настроек Django.
 raw_env = "DJANGO_STATIC_PATH=/home/pavelpc/PycharmProjects/Working_Projects/Django_Casinos_Server/casinos_server/static"
 
+# Путь к файлу, в который будет записываться лог ошибок Gunicorn.
+# errorlog = "logServerCasino_gunicorn.log"
 
 # Дополнительные параметры для оптимизации производительности.
 max_requests = 1000

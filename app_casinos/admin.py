@@ -1,12 +1,15 @@
 # import json
 
 from django import forms
-from django.contrib.admin.widgets import FilteredSelectMultiple
-from django.core.exceptions import ValidationError
-from django.http import HttpResponseRedirect
-from django.shortcuts import redirect
+# from django.contrib.admin.widgets import FilteredSelectMultiple
+# from django.core.exceptions import ValidationError
+# from django.http import HttpResponseRedirect
+# from django.shortcuts import redirect
+# from django.utils.html import format_html
+from django.forms import widgets
+from django.utils.html import format_html_join
 
-from django.utils.text import slugify
+# from django.utils.text import slugify
 
 # from django.db import transaction
 # from django.http import JsonResponse
@@ -14,6 +17,19 @@ from django.utils.text import slugify
 # from django.views.decorators.csrf import csrf_exempt
 
 from app_casinos.inline_models_admin import *
+from app_casinos.models import AffiliatesProgram
+
+
+@admin.register(AffiliatesProgram)
+class AffiliatesProgramAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', )
+    list_display_links = ('name', )
+
+
+@admin.register(CasinoImage)
+class CasinoImageAdmin(admin.ModelAdmin):
+    list_display = ('casino', 'image', )
+    list_display_links = ('casino', )
 
 
 @admin.register(AccountData)
@@ -112,37 +128,41 @@ class LicensingAuthorityAdmin(admin.ModelAdmin):
     exclude = ('slug', )
 
 # ==================================================================================================================== #
+from django_select2.forms import Select2Widget, ModelSelect2Widget
 
-class BlockedCountriesWidget(forms.TextInput):
-    def value_from_datadict(self, data, files, name):
-        value = data.get(name, '')
-        return value.split(',')
 
-class CustomCasinoAdminForm(forms.ModelForm):
-    country_names = forms.CharField(widget=BlockedCountriesWidget, required=False, help_text='Enter country names separated by commas')
-
+class FilterAffiliateProgramAdminForm(forms.ModelForm):
     class Meta:
         model = Casino
-        fields = '__all__'
+        fields = ['affiliate_program']
 
-class CasinoAdminForm(forms.ModelForm):
-    class Meta:
-        model = Casino
-        fields = '__all__'
-
-    games = forms.ModelMultipleChoiceField(
-        queryset=Game.objects.all(),
-        widget=FilteredSelectMultiple("Games", is_stacked=False),
-        required=False
+    affiliate_program = forms.ModelChoiceField(
+        queryset=AffiliatesProgram.objects.all(),
+        widget=Select2Widget(),
     )
+
 
 
 @admin.register(Casino)
 class CasinoAdmin(admin.ModelAdmin):
+    form = FilterAffiliateProgramAdminForm
     class Media:
-        js = ('app_casinos/js/admin/admin3.js',)
+        # js = ('app_casinos/js/admin/admin3.js',)
+        # css = {
+        #     'all': ('app_casinos/css/admin/admin.css',),
+        # }
+
+        js = (
+            'https://code.jquery.com/jquery-3.6.4.min.js',  # Подключение jQuery
+            'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js',  # Подключение Select2
+            'app_casinos/js/admin/admin3.js',
+        )
         css = {
-            'all': ('app_casinos/css/admin/admin.css',),
+            'all': (
+                'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css',
+                # Подключение стилей Select2
+                'app_casinos/css/admin/admin.css',
+            ),
         }
 
     # Поле только для чтения
@@ -152,18 +172,24 @@ class CasinoAdmin(admin.ModelAdmin):
         'payment_methods',
     )
 
-    list_display = ('id', 'name', 'url')
-    list_display_links = ('id', 'name')
+    list_display = ('display_images', 'name', 'url')
+    list_display_links = ('display_images', 'name')
 
     inlines = [
-        BonusesInline, WithdrawalLimitInline, SisterCasinoInline,
+        CasinoImageInline, BonusesInline, WithdrawalLimitInline, SisterCasinoInline,
         MinWageringInline, MinDepInline, AccountDataInline,  # GameInline
     ]
 
     fieldsets = (
 
-        ('Basic Information', {
-            'fields': ('slug', 'name', 'link_loyalty', 'url', 'link_casino_guru', 'link_tc',
+        ('AFFILIATES', {
+            'fields': (
+                'affiliate_program', 'link_affiliate_program', 'link_affiliate',
+            )
+        }),
+
+        ('BASIC INFORMATION', {
+            'fields': ('name', 'link_loyalty', 'url', 'link_casino_guru', 'link_tc',
                        'link_bonus_tc', 'link_bonuses', 'owner', 'established',
                        'live_chat_competence', 'special_notes',
                        ),
@@ -208,6 +234,8 @@ class CasinoAdmin(admin.ModelAdmin):
         }),
     )
 
+
+    # list_filter = ('',)
     autocomplete_fields = ('games',)
     filter_horizontal = (
         "game_types", #"game_providers",# "games",
@@ -217,16 +245,34 @@ class CasinoAdmin(admin.ModelAdmin):
 
     search_fields = ('name',)
 
-    def save_model(self, request, obj, form, change):
-        try:
-            account_data = obj.withdrawal_limit
-        except Exception as err:
-            form.add_error(None, "Record with this name already exists")
-            self.message_user(request, "Record with this name already exists. Please fill in all fields in Withdrawal limit.", level='ERROR')
-            # raise forms.ValidationError("Record with this name already exists")
-            return HttpResponseRedirect(request.path)
+    def display_images(self, obj):
+        # Возвращает HTML-код для отображения изображений в списке объектов
+        return format_html('<img src="{}" width="50" height="50" />',
+                           obj.images.first().image.url) if obj.images.exists() else None
 
-        super().save_model(request, obj, form, change)
+
+    # def save_model(self, request, obj, form, change):
+    #     try:
+    #         account_data = obj.withdrawal_limit
+    #     except Exception as err:
+    #         print(err)
+    #         # super().save_model(request, obj, form, change)
+    #     else:
+    #         print('\nunlimited: ', obj.withdrawal_limit.unlimited)
+
+
+    # def save_model(self, request, obj, form, change):
+    #     print(f"{change=}")
+    #     change = False
+    #     try:
+    #         account_data = obj.withdrawal_limit
+    #     except Exception as err:
+    #         self.message_user(request, "Please fill in all fields in Withdrawal limit.", level='ERROR')
+    #         # raise forms.ValidationError("Record with this name already exists")
+    #         print(f"{request.path=}")
+    #         return HttpResponseRedirect(request.path)
+    #
+    #     super().save_model(request, obj, form, change)
 
 
     # def save_model(self, request, obj, form, change):

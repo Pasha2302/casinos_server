@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-@gih%fg1fk7iefkx0jhf#($(6c+k!0g4hoel7229$&5@6&sew9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['aace-91-193-178-29.ngrok-free.app', '0.0.0.0', '127.0.0.1',]
+ALLOWED_HOSTS = ['1ea6-91-193-178-29.ngrok-free.app', '0.0.0.0', '127.0.0.1',]
 
 
 # Application definition
@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'django_select2',
+    'django_extensions',  # shell_plus
     'app_casinos.apps.AppCasinosConfig',
     'rest_framework',
 ]
@@ -126,6 +128,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 # Включите сжатие (необязательно, но рекомендуется для улучшения производительности) в настройках:
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_USE_CDN = True
+
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 30000
 

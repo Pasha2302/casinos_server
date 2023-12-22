@@ -8,6 +8,7 @@ from app_casinos.description_model_fields import *
 # from django.dispatch import receiver
 
 CHOICES_SOURCE = [
+    ('undefined', 'Undefined'),
     ('terms_and_conditions', 'Terms & Conditions'),
     ('support', 'Support'),
     ('website', 'Website'),
@@ -55,31 +56,30 @@ class Bonus(models.Model):
 
 
 class WithdrawalLimit(models.Model):
+
     casino = models.OneToOneField("Casino", on_delete=models.CASCADE, related_name='withdrawal_limit')
     daily = models.IntegerField(null=True, blank=True)
     weekly = models.IntegerField(null=True, blank=True)
     monthly = models.IntegerField(null=True, blank=True)
 
-    unlimited = models.BooleanField(default=False)
-    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE, null=True, blank=True)
+    unlimited = models.BooleanField()
+    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE, default='')
 
-    def save(self, *args, **kwargs):
-        # Если unlimited установлено в True, установите null=True и blank=True для всех полей
-        if self.unlimited:
-            self.daily = None
-            self.weekly = None
-            self.monthly = None
-            self.selected_source = None
-
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)
 
     def clean(self):
-        values = (self.daily, self.weekly, self.monthly, self.selected_source)
+        check_selected_source = self.selected_source if self.selected_source != 'undefined' else False
+        values = (self.daily, self.weekly, self.monthly, check_selected_source)
         print(values)
         if not self.unlimited and not all(values):
             raise ValidationError('All fields must be filled when unlimited is False.')
+        if not check_selected_source:
+            raise ValidationError('Be sure to specify the data source (Selected source)')
     def __str__(self):
-        return f"Withdrawal Limits: {self.selected_source}"
+        str_unlimited = 'there are limits'
+        if self.unlimited: str_unlimited = 'no limits'
+        return f"Withdrawal Limits: {str_unlimited} | {self.casino.name}"
 
 
 class SisterCasino(models.Model):
@@ -94,34 +94,36 @@ class SisterCasino(models.Model):
         super().save(*args, **kwargs)
 
 class MinWagering(models.Model):
-    min_value = models.IntegerField(null=True)
-    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE, null=True)
+    min_value = models.IntegerField(null=True, blank=True)
+    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE, default='')
+    unlimited = models.BooleanField(default=False)
 
     casino = models.OneToOneField(
         "Casino", on_delete=models.CASCADE, null=True, related_name='min_wagering', to_field='slug')
 
-    def save(self, *args, **kwargs):
-        if not self.selected_source or self.selected_source not in dict(CHOICES_SOURCE):
-            raise ValueError("Exactly one option must be selected.")
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)
+    def clean(self):
+        check_selected_source = self.selected_source if self.selected_source != 'undefined' else False
+        print(f"Min Wagering: {check_selected_source=}")
+        if not self.unlimited and not all((self.min_value, check_selected_source)):
+            raise ValidationError('Values: MIN VALUE and SELECTED SOURCE are required, or set to UNLIMITED.')
+        if not check_selected_source:
+            raise ValidationError('Be sure to specify the data source (Selected source)')
 
 
 class MinDep(models.Model):
-    currency_choices = [
-        ('$', 'USD'),
-        ('RUB', 'EUR'),
-        ('BNB', 'BNB'),
-    ]
-
-    min_value = models.IntegerField(null=True, blank=True)
+    min_value = models.IntegerField(null=True,)
     casino = models.ForeignKey(
         "Casino", on_delete=models.CASCADE, null=True, related_name='min_dep', to_field='slug')
 
-    symbol = models.CharField(max_length=3, choices=currency_choices)
-    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE)
+    # symbol = models.CharField(max_length=3, choices=currency_choices)
+    symbol = models.ManyToManyField("CryptoCurrency", related_name='min_dip_symbol')
+    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE, default='')
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+    def clean(self):
+        if self.selected_source == 'undefined':
+            raise ValidationError('Be sure to specify the data source (Selected source)')
 
 
 class Country(models.Model):
@@ -214,6 +216,16 @@ class AccountData(models.Model):
         verbose_name_plural = "Account Data"
 
 # ==================================================================================================================== #
+
+class CasinoImage(models.Model):
+    casino = models.ForeignKey("Casino", on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='casino_images/', verbose_name='Casino Image', null=True, blank=True)
+
+class AffiliatesProgram(models.Model):
+    name = models.CharField(max_length=255, null=True, blank=True)
+    def __str__(self):
+        return self.name
+
 class Casino(models.Model):
     CHOICES_LIVE_CHAT = [
         (1, 'High Competence'),
@@ -228,6 +240,11 @@ class Casino(models.Model):
 
     using_vpn = models.BooleanField(default=False, help_text=text_casino_vpn)
     sportsbook = models.BooleanField(default=False, help_text=text_casino_sportsbook)
+
+    affiliate_program = models.ForeignKey(
+        "AffiliatesProgram", on_delete=models.SET_NULL, null=True, related_name='casino_affiliate_program')
+    link_affiliate_program = models.URLField(verbose_name="affiliate Program URL", null=True, blank=True)
+    link_affiliate = models.URLField(verbose_name="Affiliate Link", null=True, blank=True)
 
     url = models.URLField(verbose_name="URL Website", help_text=text_url_casino)
     link_loyalty = models.URLField(verbose_name="URL Loyalty", null=True, blank=True)

@@ -1,12 +1,12 @@
-from django.conf import settings
-from django.conf.urls.static import static
-
-from django.urls import path, re_path
-from . import views
-
-
-urlpatterns = [
-    path('', views.index, name="index"),
+# from django.conf import settings
+# from django.conf.urls.static import static
+#
+# from django.urls import path, re_path
+# from . import views
+#
+#
+# urlpatterns = [
+#     path('', views.index, name="index"),
 
     # path('api/v1/add-get-games', views.GamesListCreateView.as_view()),
     # path('api/v1/update-games/<int:pk>', views.GamesAPIUpdate.as_view()),
@@ -38,9 +38,6 @@ urlpatterns = [
     #
     # path('api/v1/retrieve-update-destroy-slots/<int:pk>', views.SlotsAPIDetailView.as_view()),
 
-]
+# ]
 
 
-# Добавление URL-паттернов для обслуживания статических файлов в отладочном режиме
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
