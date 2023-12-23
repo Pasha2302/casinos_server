@@ -111,20 +111,23 @@ class MinWagering(models.Model):
         if not check_selected_source:
             raise ValidationError('Be sure to specify the data source (Selected source)')
 
+# ------------------------------------------------------------------------------------------------------------------ #
 
 class MinDep(models.Model):
     min_value = models.IntegerField(null=True,)
     casino = models.ForeignKey(
         "Casino", on_delete=models.CASCADE, null=True, related_name='min_dep', to_field='slug')
 
-    # symbol = models.CharField(max_length=3, choices=currency_choices)
-    symbol = models.ManyToManyField("CryptoCurrency", related_name='min_dip_symbol')
-    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE, default='')
+    symbol = models.ForeignKey(
+        "BaseCurrency", related_name='min_dip_symbol', on_delete=models.SET_NULL, null=True,)
+
+    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE, default='',) # потом заменить на default=''
 
     def clean(self):
         if self.selected_source == 'undefined':
             raise ValidationError('Be sure to specify the data source (Selected source)')
 
+# ------------------------------------------------------------------------------------------------------------------ #
 
 class Country(models.Model):
     slug = models.SlugField(unique=True, db_index=True, blank=True, max_length=255)
@@ -183,37 +186,52 @@ class PaymentMethod(models.Model):
     def save(self, *args, **kwargs):
         save_slug(self, super(), additionally=None, *args, **kwargs)
 
-class ClassicCurrency(models.Model):
-    symbol = models.CharField(max_length=255, verbose_name="Symbol Currency", unique=True)
-    name = models.CharField(max_length=255, verbose_name="Currency", blank=True, null=True)
+
+class BaseCurrency(models.Model):
+    symbol = models.CharField(max_length=255, verbose_name="Symbol Currency", unique=True, null=True, blank=True)
+    name = models.CharField(max_length=255, verbose_name="Name Currency", blank=True, null=True)
+
     def __str__(self):
         return f"{self.symbol} | {self.name}"
+
+
+class ClassicCurrency(BaseCurrency):
     class Meta:
         ordering = ["id"]
         verbose_name = "Classic Currency"
         verbose_name_plural = "Classic Currencies"
 
-class CryptoCurrency(models.Model):
-    symbol = models.CharField(max_length=255, verbose_name="Symbol Currency", unique=True)
-    name = models.CharField(max_length=255, verbose_name="Name Currency", blank=True, null=True)
-    def __str__(self):
-        return f"{self.symbol} | {self.name}"
+class CryptoCurrency(BaseCurrency):
+
     class Meta:
         ordering = ["id"]
         verbose_name = "Crypto Currency"
         verbose_name_plural = "Crypto Currencies"
 
+
 class AccountData(models.Model):
+    CHOICES_SIGNATURE = [
+        ('not_signed', 'Not Signed'),
+        ('signed', 'Signed'),
+    ]
     casino = models.OneToOneField(
-        "Casino", on_delete=models.CASCADE, null=True, related_name='account_data', to_field='slug')
-    log = models.CharField(max_length=50, verbose_name="Login")
-    password = models.CharField(max_length=15, verbose_name="Password", default='')
+        "Casino", on_delete=models.CASCADE, related_name='account_data', to_field='slug', unique=True)
+    log = models.CharField(max_length=50, verbose_name="Login", unique=True,)
+    password = models.CharField(max_length=15, verbose_name="Password",)
+
+    signature = models.CharField(max_length=20, choices=CHOICES_SIGNATURE, default='')
     def __str__(self):
         return self.log
     class Meta:
         ordering = ["log"]
         verbose_name = "Account Data"
         verbose_name_plural = "Account Data"
+
+    def clean(self):
+        print(f"\nAccount Data: {self.signature=}")
+        if self.signature == 'not_signed':
+            raise ValidationError('The creation of a casino must be signed (Selected Signature)')
+
 
 # ==================================================================================================================== #
 
@@ -222,7 +240,7 @@ class CasinoImage(models.Model):
     image = models.ImageField(upload_to='casino_images/', verbose_name='Casino Image', null=True, blank=True)
 
 class AffiliatesProgram(models.Model):
-    name = models.CharField(max_length=255, null=True, blank=True)
+    name = models.CharField(max_length=255, null=True, blank=True, default=None)
     def __str__(self):
         return self.name
 
@@ -242,7 +260,9 @@ class Casino(models.Model):
     sportsbook = models.BooleanField(default=False, help_text=text_casino_sportsbook)
 
     affiliate_program = models.ForeignKey(
-        "AffiliatesProgram", on_delete=models.SET_NULL, null=True, related_name='casino_affiliate_program')
+        "AffiliatesProgram", on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='casino_affiliate_program', default=None
+    )
     link_affiliate_program = models.URLField(verbose_name="affiliate Program URL", null=True, blank=True)
     link_affiliate = models.URLField(verbose_name="Affiliate Link", null=True, blank=True)
 
@@ -270,8 +290,8 @@ class Casino(models.Model):
     game_providers = models.ManyToManyField("Provider", related_name='casino_providers')
     games = models.ManyToManyField("Game", related_name='casino_games')
 
-    classic_currency = models.ManyToManyField("ClassicCurrency", related_name='casino_classic_currency')
-    crypto_currencies = models.ManyToManyField("CryptoCurrency", related_name='casino_crypto_currencies')
+    classic_currency = models.ManyToManyField("ClassicCurrency", related_name='casino_classic_currency', blank=True)
+    crypto_currencies = models.ManyToManyField("CryptoCurrency", related_name='casino_crypto_currencies', blank=True)
     payment_methods = models.ManyToManyField("PaymentMethod", related_name='casino_payment_method')
 
     wager_limit = models.BooleanField(default=False)

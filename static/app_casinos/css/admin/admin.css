@@ -42,3 +42,8 @@ tr[id^="sister_casinos-"] {
     background-color: #ffffcc; /* Светло-жёлтый цвет фона */
     /*color: #333; /* Цвет текста (например, тёмно-серый) */
 }
+
+/* Скрыть отчистку (удаление) ссылки на изображение */
+#id_images-0-image-clear_id {
+    display: none;
+}

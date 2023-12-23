@@ -1,28 +1,33 @@
-# import json
+from django.contrib import admin
+from django.utils.html import format_html
 
-from django import forms
-# from django.contrib.admin.widgets import FilteredSelectMultiple
-# from django.core.exceptions import ValidationError
-# from django.http import HttpResponseRedirect
-# from django.shortcuts import redirect
-# from django.utils.html import format_html
-from django.forms import widgets
-from django.utils.html import format_html_join
+from app_casinos.forms import FilterAffiliateProgramAdminForm, FilterMinDepAdminForm
 
-# from django.utils.text import slugify
+from app_casinos.inline_models_admin import CasinoImageInline, MinWageringInline, MinDepInline, BonusesInline, \
+    WithdrawalLimitInline, AccountDataInline, SisterCasinoInline
 
-# from django.db import transaction
-# from django.http import JsonResponse
-# from django.urls import path
-# from django.views.decorators.csrf import csrf_exempt
+from app_casinos.models import (Casino, Bonus, WithdrawalLimit, SisterCasino,
+                                MinWagering, MinDep, Country, Language, AccountData,
+                                GameType, Provider, Game, ClassicCurrency, CryptoCurrency, LicensingAuthority,
+                                CasinoImage, BaseCurrency, AffiliatesProgram, PaymentMethod)
 
-from app_casinos.inline_models_admin import *
-from app_casinos.models import AffiliatesProgram
+
+@admin.register(MinDep)
+class MinDepAdmin(admin.ModelAdmin):
+    form = FilterMinDepAdminForm
+    list_display = ('id', 'min_value', 'selected_source')
+    list_display_links = ('min_value', )
+    fields = ('min_value', 'symbol', 'selected_source', 'casino')
 
 
 @admin.register(AffiliatesProgram)
 class AffiliatesProgramAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', )
+    list_display_links = ('name', )
+
+@admin.register(PaymentMethod)
+class PaymentMethodAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'slug')
     list_display_links = ('name', )
 
 
@@ -40,6 +45,12 @@ class AccountDataAdmin(admin.ModelAdmin):
 @admin.register(SisterCasino)
 class SisterCasinoAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
+    list_display_links = ('id', 'name')
+
+# ==================================================================================================================== #
+@admin.register(BaseCurrency)
+class BaseCurrencyAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'symbol')
     list_display_links = ('id', 'name')
 
 @admin.register(ClassicCurrency)
@@ -128,20 +139,6 @@ class LicensingAuthorityAdmin(admin.ModelAdmin):
     exclude = ('slug', )
 
 # ==================================================================================================================== #
-from django_select2.forms import Select2Widget, ModelSelect2Widget
-
-
-class FilterAffiliateProgramAdminForm(forms.ModelForm):
-    class Meta:
-        model = Casino
-        fields = ['affiliate_program']
-
-    affiliate_program = forms.ModelChoiceField(
-        queryset=AffiliatesProgram.objects.all(),
-        widget=Select2Widget(),
-    )
-
-
 
 @admin.register(Casino)
 class CasinoAdmin(admin.ModelAdmin):

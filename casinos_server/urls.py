@@ -8,7 +8,7 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/admin/')),
     path('admin/', admin.site.urls),
     path('select2/', include('django_select2.urls')),
-
+    path('api/v1/', include('app_casinos.urls')),
 ]
 
 if settings.DEBUG:
