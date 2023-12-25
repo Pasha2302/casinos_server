@@ -216,21 +216,21 @@ class AccountData(models.Model):
     ]
     casino = models.OneToOneField(
         "Casino", on_delete=models.CASCADE, related_name='account_data', to_field='slug', unique=True)
-    log = models.CharField(max_length=50, verbose_name="Login", unique=True,)
+    login = models.CharField(max_length=50, verbose_name="Login", unique=True,)
     password = models.CharField(max_length=15, verbose_name="Password",)
 
-    signature = models.CharField(max_length=20, choices=CHOICES_SIGNATURE, default='')
+    # signature = models.CharField(max_length=20, choices=CHOICES_SIGNATURE)
     def __str__(self):
-        return self.log
+        return self.login
     class Meta:
-        ordering = ["log"]
+        ordering = ["login"]
         verbose_name = "Account Data"
         verbose_name_plural = "Account Data"
 
-    def clean(self):
-        print(f"\nAccount Data: {self.signature=}")
-        if self.signature == 'not_signed':
-            raise ValidationError('The creation of a casino must be signed (Selected Signature)')
+    # def clean(self):
+    #     print(f"\nAccount Data: {self.signature=}")
+    #     if self.signature == 'not_signed':
+    #         raise ValidationError('The creation of a casino must be signed (Selected Signature)')
 
 
 # ==================================================================================================================== #
@@ -279,12 +279,15 @@ class Casino(models.Model):
     established = models.PositiveIntegerField(
         verbose_name="Year of Establishment", help_text=text_casino_establish_year, null=True, blank=True)
 
-    language_website = models.ManyToManyField("Language", related_name='casino_website', help_text=text_casino_website_languages)
-    language_live_chat = models.ManyToManyField("Language", related_name='casino_live_chat', help_text=text_casino_livechat_languages)
+    language_website = models.ManyToManyField("Language", related_name='casino_website',
+                                              help_text=text_casino_website_languages)
+    language_live_chat = models.ManyToManyField("Language", related_name='casino_live_chat',
+                                                help_text=text_casino_livechat_languages)
 
-    blocked_countries = models.ManyToManyField("Country", related_name='casinos_blocked', help_text=text_casino_blocked_countries)
-    licenses = models.ManyToManyField(
-        "LicensingAuthority", related_name='casino_licenses', help_text=text_casino_license)
+    blocked_countries = models.ManyToManyField("Country", related_name='casinos_blocked',
+                                               help_text=text_casino_blocked_countries)
+    licenses = models.ManyToManyField("LicensingAuthority", related_name='casino_licenses',
+                                      help_text=text_casino_license)
 
     game_types = models.ManyToManyField("GameType", related_name='casino_game_types')
     game_providers = models.ManyToManyField("Provider", related_name='casino_providers')
@@ -322,4 +325,44 @@ class Casino(models.Model):
 
 
 
-
+# class AccountData(models.Model):
+#     casino = models.OneToOneField(
+#         "Casino", on_delete=models.CASCADE, related_name='account_data', to_field='slug', unique=True)
+#     log = models.CharField(max_length=50, verbose_name="Login", unique=True,)
+#     password = models.CharField(max_length=15, verbose_name="Password",)
+#
+#     def __str__(self):
+#         return self.log
+#     class Meta:
+#         ordering = ["log"]
+#         verbose_name = "Account Data"
+#         verbose_name_plural = "Account Data"
+#
+#
+# class AccountDataInline(admin.TabularInline):
+#     # form = AccountDataForm
+#     model = AccountData
+#     can_delete = False
+#     fields = ('log', 'password', 'signature')
+#
+#
+# @admin.register(Casino)
+# class CasinoAdmin(admin.ModelAdmin):
+#     form = FilterAffiliateProgramAdminForm
+#
+#     # ...
+#     readonly_fields = (
+#         'slug', 'owner', 'established',
+#         'games', 'game_providers',
+#         'payment_methods',
+#     )
+#
+#     list_display = ('display_images', 'name', 'url')
+#     list_display_links = ('display_images', 'name')
+#
+#     inlines = [
+#         CasinoImageInline, BonusesInline, WithdrawalLimitInline, SisterCasinoInline,
+#         MinWageringInline, MinDepInline, AccountDataInline,  # GameInline
+#     ]
+#
+#     # ...

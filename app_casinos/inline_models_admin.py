@@ -15,10 +15,12 @@ class GameInline(admin.TabularInline):
     raw_id_fields = ['game']
 
 class AccountDataInline(admin.TabularInline):
-    # form = AccountDataForm
+    form = AccountDataForm
     model = AccountData
+    extra = 1
+    max_num = 0
     can_delete = False
-    fields = ('log', 'password', 'signature')
+    fields = ('login', 'password', ) # 'signature'
 
 # ================================================================================================================== #
 
@@ -79,6 +81,7 @@ class MinDepInline(admin.TabularInline):
     model = MinDep
     form = FilterMinDepAdminForm
     extra = 1
+
     can_delete = False
     fields = ('min_value', 'symbol', 'selected_source',)
 

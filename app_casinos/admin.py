@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
+from django.urls import reverse
 from django.utils.html import format_html
 
 from app_casinos.forms import FilterAffiliateProgramAdminForm, FilterMinDepAdminForm
@@ -39,8 +41,8 @@ class CasinoImageAdmin(admin.ModelAdmin):
 
 @admin.register(AccountData)
 class AccountDataAdmin(admin.ModelAdmin):
-    list_display = ('id', 'log')
-    list_display_links = ('id', 'log')
+    list_display = ('id', 'login')
+    list_display_links = ('id', 'login')
 
 @admin.register(SisterCasino)
 class SisterCasinoAdmin(admin.ModelAdmin):
@@ -52,6 +54,7 @@ class SisterCasinoAdmin(admin.ModelAdmin):
 class BaseCurrencyAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'symbol')
     list_display_links = ('id', 'name')
+    search_fields = ('symbol',)
 
 @admin.register(ClassicCurrency)
 class ClassicCurrencyAdmin(admin.ModelAdmin):
@@ -140,15 +143,27 @@ class LicensingAuthorityAdmin(admin.ModelAdmin):
 
 # ==================================================================================================================== #
 
+class SoldOutFilter(SimpleListFilter):
+    title = "Name Casino"
+    parameter_name = "name"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("yes", "Yes"),
+            ("no", "No"),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == "yes":
+            return queryset.filter(name=0)
+        else:
+            return queryset.exclude(name=0)
+
 @admin.register(Casino)
 class CasinoAdmin(admin.ModelAdmin):
+    change_form_template = 'admin/casino_change_form.html'
     form = FilterAffiliateProgramAdminForm
     class Media:
-        # js = ('app_casinos/js/admin/admin3.js',)
-        # css = {
-        #     'all': ('app_casinos/css/admin/admin.css',),
-        # }
-
         js = (
             'https://code.jquery.com/jquery-3.6.4.min.js',  # Подключение jQuery
             'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js',  # Подключение Select2
@@ -169,7 +184,7 @@ class CasinoAdmin(admin.ModelAdmin):
         'payment_methods',
     )
 
-    list_display = ('display_images', 'name', 'url')
+    list_display = ('display_images', 'name', 'url', 'display_affiliate_program', 'my_func')
     list_display_links = ('display_images', 'name')
 
     inlines = [
@@ -248,6 +263,31 @@ class CasinoAdmin(admin.ModelAdmin):
                            obj.images.first().image.url) if obj.images.exists() else None
 
 
+    def my_func(self, obj, *args, **kwargs):
+        # print(f"\nMy Func: {obj=}")
+        # print(f"{args=}\n{kwargs=}\n")
+
+        return False
+
+    def display_affiliate_program(self, obj):
+        if obj.affiliate_program:
+            link = reverse("admin:app_casinos_affiliatesprogram_change", args=[obj.affiliate_program.id])
+            return format_html('<a href="{}">{}</a>', link, obj.affiliate_program)
+
+    display_affiliate_program.short_description = "Affiliate Program"
+    my_func.short_description = "Verified"
+    my_func.boolean = True
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj=obj)
+        # Добавьте новый блок в вашей форме
+        fieldsets += (
+            ('Дополнительные данные', {
+                'fields': ('slug',)
+            }),
+        )
+        return fieldsets
+
     # def save_model(self, request, obj, form, change):
     #     try:
     #         account_data = obj.withdrawal_limit
@@ -282,7 +322,7 @@ class CasinoAdmin(admin.ModelAdmin):
     #         countries = [Country.objects.get_or_create(name=name)[0] for name in country_names_list]
     #         obj.blocked_countries.set(countries)
 
-    # change_form_template = 'admin/casino_change_form.html'
+
     #
     # @csrf_exempt
     # def import_countries_view(self, request, object_id=None, form_url='', extra_context=None):
@@ -331,33 +371,3 @@ class CasinoAdmin(admin.ModelAdmin):
     #     }
     #
     # exclude = ["licenses"]
-
-
-
-
-# class CountryInline(admin.TabularInline):
-#     model = Casino.blocked_countries.through  # Use the intermediary model
-#
-#
-# class CustomCasinoAdminForm(forms.ModelForm):
-#     country_names = forms.CharField(widget=forms.Textarea, required=False,
-#                                     help_text='Enter country names separated by commas')
-#
-#     class Meta:
-#         model = Casino
-#         fields = '__all__'
-#
-# @admin.register(Casino)
-# class CasinoAdmin(admin.ModelAdmin):
-#     form = CustomCasinoAdminForm
-#     inlines = [CountryInline]
-#
-#     def save_model(self, request, obj, form, change):
-#         super().save_model(request, obj, form, change)
-#
-#         country_names = form.cleaned_data.get('country_names', '')
-#         country_names_list = [name.strip() for name in country_names.split(',') if name.strip()]
-#
-#         if country_names_list:
-#             countries = [Country.objects.get_or_create(name=name)[0] for name in country_names_list]
-#             obj.blocked_countries.set(countries)

@@ -47,3 +47,6 @@ tr[id^="sister_casinos-"] {
 input[name^="images-"][name$="-image-clear"] {
     display: none !important;
 }
+
+
+/* Навигационная панель:*/
