@@ -1,9 +1,8 @@
-
 .inline-group {
-    max-height: 430px;
+    max-height: 500px;
     overflow-y: auto;
 }
-
+/*
 .custom-button {
   margin-top: 20px;
   padding: 10px;
@@ -15,38 +14,62 @@
   display: block;
   margin-bottom: 10px;
 }
+*/
 
-.custom-button:hover {
-  background-color: #45a049;
-}
+.aligned label+div.readonly {
+  padding: 21px 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-left: 0;
+  overflow-wrap: break-word;
 
-#file-input {
-  display: none;
-}
-
-
-.aligned label + div.readonly {
-    padding: 21px 0;
-    margin-top: 0;
-    margin-bottom: 0;
-    margin-left: 0;
-    overflow-wrap: break-word;
-
-    max-height: 200px; /* Задайте максимальную высоту поля */
-    overflow-y: auto; /* Добавляет внутренний скролл, если содержимое превышает установленную высоту */
-    background-color: #ffffcc; /* Светло-жёлтый цвет фона */
+  max-height: 200px; /* Задайте максимальную высоту поля */
+  overflow-y: auto; /* Добавляет внутренний скролл, если содержимое превышает установленную высоту */
+  background-color: #ffffcc; /* Светло-жёлтый цвет фона */
 }
 
 
 tr[id^="sister_casinos-"] {
-    background-color: #ffffcc; /* Светло-жёлтый цвет фона */
-    /*color: #333; /* Цвет текста (например, тёмно-серый) */
+  background-color: #ffffcc;
+  /* Светло-жёлтый цвет фона */
+  /*color: #333; /* Цвет текста (например, тёмно-серый) */
 }
 
 /* Скрыть отчистку (удаление) ссылки на изображение */
 input[name^="images-"][name$="-image-clear"] {
-    display: none !important;
+  display: none !important;
 }
 
 
-/* Навигационная панель:*/
+/* Навигационная панель (button):*/
+/* Стили для кнопок */
+.nav-button,
+.button-title {
+  appearance: none;
+  font-weight: 400;
+  text-transform: uppercase;
+  background: var(--default-button-hover-bg);
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 5px;
+  transition: background 0.3s, border-color 0.3s, color 0.3s;
+  /* Добавлен transition для изменения цвета текста */
+  padding: 10px 15px;
+  color: #f8f8f8;
+}
+
+/* Подсветка при наведении */
+.nav-button:hover,
+.button-title:hover {
+  background: #24a675;
+  border-color: var(--default-button-border);
+}
+
+/* Стили для активной (выбранной) кнопки */
+.nav-button.active {
+  background: #18c3b5;
+  border-color: #3bd0b3;
+  color: #ffffff;
+  outline: none;
+}

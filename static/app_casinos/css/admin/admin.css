@@ -44,6 +44,38 @@ tr[id^="sister_casinos-"] {
 }
 
 /* Скрыть отчистку (удаление) ссылки на изображение */
-#id_images-0-image-clear_id {
-    display: none;
+input[name^="images-"][name$="-image-clear"] {
+    display: none !important;
 }
+
+
+/* Навигационная панель (button):*/
+/* Стили для кнопок */
+.nav-button, .show-all-button {
+  appearance: none;
+  font-weight: 400;
+  text-transform: uppercase;
+  background: var(--default-button-hover-bg);
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 5px;
+  transition: background 0.3s, border-color 0.3s, color 0.3s; /* Добавлен transition для изменения цвета текста */
+  padding: 10px 15px;
+  color: #f8f8f8;
+}
+
+/* Подсветка при наведении */
+.nav-button:hover, .show-all-button:hover {
+  background: #24a675;
+  border-color: var(--default-button-border);
+}
+
+/* Стили для активной (выбранной) кнопки */
+.nav-button.active, .show-all-button.active {
+    background: #18c3b5;
+    border-color: #3bd0b3;
+    color: #ffffff;
+    outline: none;
+}
+

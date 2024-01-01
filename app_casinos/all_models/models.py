@@ -35,26 +35,6 @@ class LicensingAuthority(models.Model):
         return self.name
 
 
-class Bonus(models.Model):
-    slug = models.SlugField(unique=True, db_index=True, blank=True, max_length=255)
-    name = models.CharField(max_length=255, default=None)
-    link = models.URLField()
-    description = models.TextField()
-
-    casino = models.ForeignKey(
-        'Casino', on_delete=models.CASCADE, null=True, related_name='bonuses', to_field='slug')
-
-    objects: QuerySet = models.Manager()
-
-    def save(self, *args, **kwargs):
-        save_slug(self, super(), additionally=None, *args, **kwargs)
-    def __str__(self):
-        return self.name
-    class Meta:
-        ordering = ["id"]
-        verbose_name_plural = "Bonuses"
-
-
 class WithdrawalLimit(models.Model):
 
     casino = models.OneToOneField("Casino", on_delete=models.CASCADE, related_name='withdrawal_limit')
@@ -188,12 +168,15 @@ class PaymentMethod(models.Model):
 
 
 class BaseCurrency(models.Model):
-    symbol = models.CharField(max_length=255, verbose_name="Symbol Currency", unique=True, null=True, blank=True)
-    name = models.CharField(max_length=255, verbose_name="Name Currency", blank=True, null=True)
+    symbol = models.CharField(max_length=255, verbose_name="Symbol Currency", unique=True, null=True)
+    name = models.CharField(max_length=255, verbose_name="Name Currency", null=True)
 
     def __str__(self):
         return f"{self.symbol} | {self.name}"
-
+    class Meta:
+        ordering = ["id"]
+        verbose_name = "Base Currency"
+        verbose_name_plural = "Base Currencies"
 
 class ClassicCurrency(BaseCurrency):
     class Meta:
@@ -215,7 +198,7 @@ class AccountData(models.Model):
         ('signed', 'Signed'),
     ]
     casino = models.OneToOneField(
-        "Casino", on_delete=models.CASCADE, related_name='account_data', to_field='slug', unique=True)
+        "Casino", on_delete=models.CASCADE, related_name='account_data', to_field='slug',)
     login = models.CharField(max_length=50, verbose_name="Login", unique=True,)
     password = models.CharField(max_length=15, verbose_name="Password",)
 
@@ -293,8 +276,8 @@ class Casino(models.Model):
     game_providers = models.ManyToManyField("Provider", related_name='casino_providers')
     games = models.ManyToManyField("Game", related_name='casino_games')
 
-    classic_currency = models.ManyToManyField("ClassicCurrency", related_name='casino_classic_currency', blank=True)
-    crypto_currencies = models.ManyToManyField("CryptoCurrency", related_name='casino_crypto_currencies', blank=True)
+    classic_currency = models.ManyToManyField("ClassicCurrency", related_name='casino_classic_currency')
+    crypto_currencies = models.ManyToManyField("CryptoCurrency", related_name='casino_crypto_currencies')
     payment_methods = models.ManyToManyField("PaymentMethod", related_name='casino_payment_method')
 
     wager_limit = models.BooleanField(default=False)

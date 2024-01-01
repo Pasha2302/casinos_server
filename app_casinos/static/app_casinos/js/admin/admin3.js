@@ -2,6 +2,7 @@
   $(document).ready(function () {
     const SelectBox = window.SelectBox
     SelectBox.filter = function (id, text) {
+      console.log("Select Filter [id]:", id)
       const tokens = text.toLowerCase().split(',').map((t) => t.trim());
       for (const node of SelectBox.cache[id]) {
         if (tokens.lenght === 0) {
@@ -23,30 +24,18 @@
 })(jQuery);
 
 
-
 document.addEventListener('DOMContentLoaded', function () {
   const buttons = document.querySelectorAll('.nav-button');
-  const fieldsets = document.querySelectorAll('.form-fieldset');
-  const showAllButton = document.querySelector('.show-all-button');
+
+  function setActiveButton(button) {
+    buttons.forEach(function (btn) { btn.classList.remove('active'); });
+    button.classList.add('active');
+  }
 
   buttons.forEach(function (button) {
     button.addEventListener('click', function () {
-      let target = button.getAttribute('data-target');
-
-      // Скрыть все блоки
-      fieldsets.forEach(function (fieldset) {
-        fieldset.style.display = 'none';
-      });
-
-      // Показать выбранный блок
-      document.getElementById(target).style.display = 'block';
-    });
-  });
-
-  showAllButton.addEventListener('click', function () {
-    // Показать все блоки
-    fieldsets.forEach(function (fieldset) {
-      fieldset.style.display = 'block';
-    });
+        // Установить активную кнопку
+        setActiveButton(button);
+    })
   });
 });

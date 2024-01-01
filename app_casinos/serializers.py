@@ -5,8 +5,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from rest_framework import serializers
-from app_casinos.models import ClassicCurrency, CryptoCurrency, Provider, Country, LicensingAuthority, Language, \
-    GameType, Game, PaymentMethod
+from app_casinos.all_models.models import (
+    ClassicCurrency, CryptoCurrency, Provider, Country,
+    LicensingAuthority, Language,GameType, Game, PaymentMethod
+)
 
 
 class LicensingAuthoritySerializer(serializers.ModelSerializer):

@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-@gih%fg1fk7iefkx0jhf#($(6c+k!0g4hoel7229$&5@6&sew9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['3c22-89-113-152-153.ngrok-free.app', '0.0.0.0', '127.0.0.1',]
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1',]
 
 
 # Application definition
@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'django_extensions',  # shell_plus
-    'django_select2',
     'app_casinos.apps.AppCasinosConfig',
     'rest_framework',
 ]

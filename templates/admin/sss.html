@@ -1,61 +1,37 @@
-
+{% extends "admin/change_form.html" %}
+{% load static %}
 
 {% block extrastyle %}
-  {{ block.super }}
-  <style>
-    .admin-content .form-row {
-      display: none;
-    }
-
-    .admin-content .form-row.active {
-      display: flex;
-    }
-
-    .admin-content .form-row.active * {
-      display: block;
-    }
-  </style>
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'app_casinos/css/admin/admin.css' %}">
 {% endblock %}
+
 
 {% block field_sets %}
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const navButtons = document.querySelectorAll('.nav-button');
-      const formRows = document.querySelectorAll('.form-row');
+<!--  <p>{{ adminform.fieldsets.0.0 }}</p>-->
 
-      navButtons.forEach(button => {
-        button.addEventListener('click', function () {
-          const target = this.getAttribute('data-target');
-
-          formRows.forEach(row => {
-            row.classList.toggle('active', target === 'all' || row.classList.contains(target));
-          });
-        });
-      });
-    });
-  </script>
-
-  <div id="custom-admin-panel">
-    <div class="admin-nav">
-      <button type="button" data-target="all" class="nav-button">All Data</button>
-      <button type="button" data-target="affiliates" class="nav-button">Affiliates</button>
-      <button type="button" data-target="basic-information" class="nav-button">Basic Information</button>
-      <button type="button" data-target="languages" class="nav-button">Languages</button>
-      <button type="button" data-target="restricted-countries" class="nav-button">Restricted Countries</button>
-      <button type="button" data-target="casino-license" class="nav-button">Casino License</button>
-      <button type="button" data-target="other-info" class="nav-button">Other Info</button>
-      <button type="button" data-target="payments" class="nav-button">Payments</button>
-      <button type="button" data-target="games-info" class="nav-button">Games Info</button>
-      <button type="button" data-target="responsible-gambling-tools" class="nav-button">Responsible Gambling Tools</button>
-      <!-- Добавьте кнопки для других блоков по мере необходимости -->
-    </div>
-
-    <div class="admin-content">
-      {% for fieldset in adminform %}
-        <div class="form-row {{ fieldset.name|slugify }}">
-          {% include "admin/fieldset.html" %}
-        </div>
-      {% endfor %}
-    </div>
+  <div class="submit-row">
+    <button type="button" class="show-all-button">
+      Show All
+    </button>
+    {% for fieldset in adminform %}
+      {% if forloop.counter0 < 2 %}
+        <button type="button" class="nav-button" data-target="{{ fieldset.name|slugify }}">
+          {{ fieldset.name }}
+        </button>
+      {% endif %}
+    {% endfor %}
   </div>
+
+  {% for fieldset in adminform %}
+    <div id="{{ fieldset.name|slugify }}" class="form-fieldset">
+      {% include "admin/fieldset.html" %}
+    </div>
+  {% endfor %}
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="{% static 'app_casinos/js/admin/moving_blocks_to_change_form.js' %}"></script>
+<script src="{% static 'app_casinos/js/admin/admin3.js' %}"></script>
 {% endblock %}
+
+

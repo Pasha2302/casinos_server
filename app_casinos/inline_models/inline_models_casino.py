@@ -2,9 +2,12 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.db import models
 
-from app_casinos.forms import NoClearableFileInput, FilterMinDepAdminForm, AccountDataForm
-from app_casinos.models import Casino, AccountData, CasinoImage, Bonus, WithdrawalLimit, SisterCasino, MinWagering, \
-    MinDep
+from app_casinos.forms import NoClearableFileInput, AccountDataForm
+from app_casinos.all_models.bonus_model import Bonus
+from app_casinos.all_models.models import (
+    Casino, AccountData, CasinoImage, WithdrawalLimit,
+    SisterCasino, MinWagering,MinDep,
+)
 
 
 class GameInline(admin.TabularInline):
@@ -27,7 +30,7 @@ class AccountDataInline(admin.TabularInline):
 class CasinoImageInline(admin.TabularInline):
     model = CasinoImage
     extra = 1
-    can_delete = False  # Запрещаем удаление записей
+    can_delete = True  # Разрешаем удаление записей
     formfield_overrides = {
         models.ImageField: {'widget': NoClearableFileInput},
     }
@@ -73,15 +76,32 @@ class SisterCasinoInline(admin.TabularInline):
 class MinWageringInline(admin.TabularInline):
     model = MinWagering
     extra = 1
+    max_num = 1
+    can_delete = False
 
 
 # ==================================================================================================================== #
 
 class MinDepInline(admin.TabularInline):
     model = MinDep
-    form = FilterMinDepAdminForm
     extra = 1
 
     can_delete = False
     fields = ('min_value', 'symbol', 'selected_source',)
+    autocomplete_fields = ('symbol',)
 
+    def get_formset(self, request, obj=None, **kwargs):
+        # print(f"{'&&' * 60}\n\nForm Set:\n"
+        #       f"{obj=}\n"
+        #       f"{obj.min_dep.__dict__=}\n"
+        #       f"{obj.min_dep.all()=}\n")
+
+        formset = super().get_formset(request, obj, **kwargs)
+        # print(formset, type(formset))
+        # print(formset.__dict__)
+        try:
+            obj_min_dip = obj.min_dep
+            if len(obj_min_dip.all()) > 0: formset.extra = 0
+        except Exception as err_extra: print(f"[file -> inline_models_admin.py] err_extra: {err_extra}")
+
+        return formset
