@@ -27,10 +27,12 @@ class LicensingAuthority(models.Model):
 
     def save(self, *args, **kwargs):
         save_slug(self, super(), additionally=None, *args, **kwargs)
+    # REVIEW: Нужна пустая строка
     class Meta:
         ordering = ["id"]
         verbose_name = "Licensing Authority"
         verbose_name_plural = "Licensing Authorities"
+    # REVIEW: Вложенные классы должны быть в самом низу. Не стоит под ними пихать ещё что-то
     def __str__(self):
         return self.name
 
@@ -38,6 +40,7 @@ class LicensingAuthority(models.Model):
 class WithdrawalLimit(models.Model):
 
     casino = models.OneToOneField("Casino", on_delete=models.CASCADE, related_name='withdrawal_limit')
+    # REVIEW: нужно быть очень осторожным с null в базе. Какое там поведение? Если нулл, то лимита нет?
     daily = models.IntegerField(null=True, blank=True)
     weekly = models.IntegerField(null=True, blank=True)
     monthly = models.IntegerField(null=True, blank=True)
@@ -65,6 +68,8 @@ class WithdrawalLimit(models.Model):
 class SisterCasino(models.Model):
     name = models.CharField(max_length=255, blank=True)
     selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE)
+    # REVIEW: Если ты связываешь на slug, то проще будет сделать slug первичным ключом
+    # slug = models.SlugField(unique=True, primary_key=True)
     casino = models.ForeignKey(
         "Casino", on_delete=models.CASCADE, null=True, related_name='sister_casinos', to_field='slug')
 
@@ -101,6 +106,7 @@ class MinDep(models.Model):
     symbol = models.ForeignKey(
         "BaseCurrency", related_name='min_dip_symbol', on_delete=models.SET_NULL, null=True,)
 
+    # REVIEW: Потом заменилось на default=''?
     selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE, default='',) # потом заменить на default=''
 
     def clean(self):
