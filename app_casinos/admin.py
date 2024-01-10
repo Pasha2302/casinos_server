@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from app_casinos.forms import (ModelDataValidationForm, BonusAdminForm, RichTextEditorWidget)
+# REVIEW: Выглядит страшно, поставь перенос строки после (
 from app_casinos.inline_models.inline_models_bonus import (BonusAmountInline, BonusValueInline, BonusMinDepInline,
                                                            BonusExpirationInline, PromotionPeriodInline, StickyInline,
                                                            BonusMaxWinInline, TurnoverBonusInline,
