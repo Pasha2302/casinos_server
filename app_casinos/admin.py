@@ -1,37 +1,124 @@
+import re
 from django.contrib import admin
 from django.db import models
-
-from django.contrib.admin import SimpleListFilter
+from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html
 
-from app_casinos.forms import (ModelDataValidationForm, BonusAdminForm, RichTextEditorWidget)
-from app_casinos.inline_models.inline_models_bonus import (BonusAmountInline, BonusValueInline, BonusMinDepInline,
-                                                           BonusExpirationInline, PromotionPeriodInline, StickyInline,
-                                                           BonusMaxWinInline, TurnoverBonusInline,
-                                                           FreeSpinAmountInline, OneSpinInline, BonusSlotInline,
-                                                           WagerInline, WageringInline, WageringContributionInline,
-                                                           BonusRestrictionGameInline, BonusRestrictionCountryInline,
-                                                           BonusRestrictionRtpGameInline, BonusMaxBetInline,
-                                                           BonusMaxBetAutomaticInline, BonusBuyFeatureInline,
-                                                           BonusSpecialNoteInline, )
+from app_casinos.forms import (CountryDataValidationForm, BonusAdminForm, RichTextEditorWidget,)
+from app_casinos.inline_models.inline_models_bonus import (
+    BonusAmountInline, BonusValueInline, BonusMinDepInline,
+    BonusExpirationInline, PromotionPeriodInline, StickyInline,
+    BonusMaxWinInline, TurnoverBonusInline,
+    FreeSpinAmountInline, OneSpinInline, BonusSlotInline,
+    WagerInline, WageringInline, WageringContributionInline,
+    BonusRestrictionGameInline, BonusRestrictionCountryInline,
+    BonusRestrictionRtpGameInline, BonusMaxBetInline,
+    BonusMaxBetAutomaticInline, BonusBuyFeatureInline,
+    BonusSpecialNoteInline, WageringBonusPlusDepositInline,
+    DayOfWeekInline,
+)
 
-from app_casinos.inline_models.inline_models_casino import CasinoImageInline, MinWageringInline, MinDepInline, BonusesInline, \
-    WithdrawalLimitInline, AccountDataInline, SisterCasinoInline
+from app_casinos.inline_models.inline_models_casino import (
+    CasinoImageInline, MinWageringInline, MinDepInline,
+    BonusInline, WithdrawalLimitInline, AccountDataInline, SocialBonusInline,
+)
+from app_casinos.inline_models.inline_models_loyalty_program import (
+    PointAccumulationInline, CashbackInline, LevelUpBonusInline, LevelLoyaltyInline, LoyaltyProgramInline,
+    WithdrawalsInline, SpecialPrizeInline, GiftsInline, LoyaltyBonusInline
+)
 
-from app_casinos.all_models.bonus_model import Bonus, BonusType, BonusSubtype, WageringContributionValue, \
-    WageringContribution
-from app_casinos.all_models.models import (Casino, WithdrawalLimit, SisterCasino,
-                                MinDep, Country, Language, AccountData, GameType,
-                                Provider, Game, ClassicCurrency, CryptoCurrency, LicensingAuthority,
-                                CasinoImage, BaseCurrency, AffiliatesProgram, PaymentMethod)
+from app_casinos.models.bonus import (
+    Bonus, BonusType, WageringContributionValue,
+    WageringContribution, BonusSlot, BonusRestrictionGame, BonusSubtype, Day, BonusMinDep, DataAutoFillBonus
+)
+from app_casinos.models.casino import (
+    Casino, WithdrawalLimit, SisterCasino,
+    MinDep, Country, Language, AccountData, GameType,
+    Provider, Game, ClassicCurrency, CryptoCurrency, LicensingAuthority,
+    CasinoImage, BaseCurrency, AffiliatesProgram, PaymentMethod, Affiliate,
+    CasinoTheme
+)
+from app_casinos.models.loyalty_program import LoyaltyProgram, LevelLoyalty, CashbackPeriod, CashbackType
+from django.utils.safestring import mark_safe
 
 
-@admin.register(BonusSubtype)
-class BonusTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', )
-    list_display_links = ('name', )
-    search_fields = ('name',)
+@admin.register(DataAutoFillBonus)
+class DataAutoFillBonusAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(CashbackPeriod)
+class CashbackPeriodAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(CashbackType)
+class CashbackTypeAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(LevelLoyalty)
+class LevelLoyaltyAdmin(admin.ModelAdmin):
+    list_display = ('id', 'display_casino_name', 'level',)
+    list_display_links = ('id', 'display_casino_name',)
+    search_fields = ('program__casino__name', 'level')
+
+    inlines = (
+        PointAccumulationInline, CashbackInline, LevelUpBonusInline, WithdrawalsInline, SpecialPrizeInline,
+        GiftsInline, LoyaltyBonusInline,
+    )
+
+    @admin.display(description="Casino Name")
+    def display_casino_name(self, obj: LevelLoyalty):
+        if obj.program and obj.program.casino: return obj.program.casino.name
+
+
+@admin.register(LoyaltyProgram)
+class LoyaltyProgramAdmin(admin.ModelAdmin):
+    change_form_template = 'admin/loyalty_prog_change_form.html'
+    # form = ''
+
+    list_display = ('id', 'display_casino_name', 'link', )
+    list_display_links = ('id', 'display_casino_name', )
+    search_fields = ('casino__name', )
+    autocomplete_fields = ('casino', )
+
+    inlines = (
+        LevelLoyaltyInline,
+    )
+    fieldsets = (
+        ('Loyalty Program', {
+            'fields': ('casino', 'link', 'loyalty_understandable', 'vip_manager')
+        }),
+    )
+
+    @admin.display(description="Casino Name")
+    def display_casino_name(self, obj: LoyaltyProgram):
+        if obj.casino: return obj.casino.name
+
+
+
+# ==================================================================================================================== #
+@admin.register(BonusRestrictionGame)
+class BonusRestrictionGameAdmin(admin.ModelAdmin):
+    list_display = ('id', 'bonus', 'selected_source')
+    list_display_links = ('bonus', )
+    search_fields = ('bonus', 'game__name')
+    autocomplete_fields = ('game', )
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "game":
+            kwargs["queryset"] = Game.objects.none()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+@admin.register(BonusSlot)
+class BonusSlotAdmin(admin.ModelAdmin):
+    list_display = ('id', 'bonus', 'selected_source')
+    list_display_links = ('bonus', )
+    search_fields = ('bonus', 'game__name')
+    autocomplete_fields = ('game', )
 
 @admin.register(BonusType)
 class BonusTypeAdmin(admin.ModelAdmin):
@@ -51,22 +138,43 @@ class WageringContributionAdmin(admin.ModelAdmin):
     list_display_links = ('bonus', )
     search_fields = ('contribution_description',)
 
+@admin.register(BonusSubtype)
+class BonusSubtypeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', )
+    list_display_links = ('name', )
+    search_fields = ('name',)
+
+@admin.register(Day)
+class DayAdmin(admin.ModelAdmin):
+    fields =  ("day", )
+    search_fields = ('day',)
+
+
+@admin.register(BonusMinDep)
+class BonusMinDepAdmin(admin.ModelAdmin):
+    list_display = ('id', 'bonus', 'min_value', 'symbol', 'selected_source')
+    fields =  ('bonus', 'min_value', 'symbol', 'selected_source')
+    list_display_links = ('bonus', 'min_value', 'symbol', 'selected_source')
+
+
 @admin.register(Bonus)
-class BonusesAdmin(admin.ModelAdmin):
+class BonusAdmin(admin.ModelAdmin):
     change_form_template = 'admin/bonus_change_form.html'
     form = BonusAdminForm
 
-    list_display = ('id', 'name', 'link', 'display_casino_name')
+    list_display = ('id', 'name', 'display_casino_name', 'bonus_type', 'link')
     list_display_links = ('id', 'name')
-    search_fields = ('name',)
-    autocomplete_fields = ('casino', 'bonus_type')
+    search_fields = ('casino__name', 'bonus_type__name')
+    autocomplete_fields = ('casino', 'bonus_type',)
+    # readonly_fields = ('calculation_bonus_deposit', 'calculation_bonus_only')
+    readonly_fields = ('get_url_casino', 'get_url_bonus_tc')
 
     inlines = (
         BonusAmountInline, BonusValueInline, BonusMinDepInline, BonusExpirationInline,
-        PromotionPeriodInline,StickyInline, BonusMaxWinInline, TurnoverBonusInline,
+        PromotionPeriodInline, StickyInline, BonusMaxWinInline, TurnoverBonusInline, DayOfWeekInline,
 
         FreeSpinAmountInline, OneSpinInline, BonusSlotInline, WagerInline,
-        WageringInline, WageringContributionInline,
+        WageringInline, WageringBonusPlusDepositInline, WageringContributionInline,
         BonusRestrictionGameInline, BonusRestrictionCountryInline, BonusRestrictionRtpGameInline,
         BonusMaxBetInline, BonusMaxBetAutomaticInline,
         BonusBuyFeatureInline, BonusSpecialNoteInline,
@@ -78,42 +186,49 @@ class BonusesAdmin(admin.ModelAdmin):
             # "description": "<p>Какой-то текст!</p>",
             # [classes] Список или кортеж, содержащий дополнительные классы CSS для применения к набору полей:
             "classes": ("extrapretty", ), # "wide", "collapse", "extrapretty"
-            'fields': ('casino', 'bonus_type', 'bonus_subtypes', 'link', 'name', 'social_bonuses')
+            'fields': (
+                'casino', 'get_url_casino', 'get_url_bonus_tc', 'link', 'bonus_type', 'bonus_subtype', 'name',
+            )
         }),
+
+        # ('DAILY AVAILABILITY', {'fields': ('days',)}),
+        ('BONUS RESTRICTION PROVIDERS', {'fields': ('game_providers',)}),
 
         ('TOTAL BONUS AMOUNT', {
             'fields': ('bonus_plus_deposit', 'bonus_only', 'bonus_plus_freespins_value')
         }),
+        ('AMOUNT OF BETS FOR WAGERING', {
+            'fields': ('calculation_bonus_deposit', 'calculation_bonus_only',)
+        }),
 
     )
-    filter_horizontal = ("bonus_subtypes", )
+    filter_horizontal = ("bonus_subtype", "game_providers", )
     # Это обеспечивает быстрый и грязный способ переопределения некоторых опций Field для использования в админке:
     formfield_overrides = {
         models.TextField: {"widget": RichTextEditorWidget},
     }
 
-    def get_fieldsets(self, request, obj=None):
-        fieldsets = super().get_fieldsets(request, obj)
-        print(f"\n\nField Sets:\n{fieldsets}")
-        return fieldsets
-    def get_inlines(self, request, obj):
-        inlines = super().get_inlines(request, obj)
-        print(f"\n\nInlines:\n{inlines}")
-        print(f"\n\nOne InLine Object [dict]:\n{inlines[0].__dict__}")
-        return inlines
+    def get_url_bonus_tc(self, obj: Bonus):
+        link_bonus_tc = obj.casino.link_bonus_tc
+        return mark_safe(f'<a href="{link_bonus_tc}" target="_blank">{link_bonus_tc}</a>')
+    get_url_bonus_tc.short_description = 'URL Bonus T&C'
 
+    def get_url_casino(self, obj: Bonus):
+        casino_link = obj.casino.url
+        return mark_safe(f'<a href="{casino_link}" target="_blank">{casino_link}</a>')
+    get_url_casino.short_description = 'URL Casino'
 
     @admin.display(description="Casino Name")
     def display_casino_name(self, obj: Bonus):
         if obj.casino: return  obj.casino.name
 # ==================================================================================================================== #
 # ==================================================================================================================== #
-
+from django.db.models.options import Options
 @admin.register(MinDep)
 class MinDepAdmin(admin.ModelAdmin):
-    list_display = ('id', 'min_value', 'selected_source')
+    list_display = ('id', 'min_value', 'unlimited', 'selected_source')
     list_display_links = ('min_value', )
-    fields = ('min_value', 'symbol', 'selected_source', 'casino')
+    fields = ('min_value', 'symbol', 'unlimited', 'selected_source', 'casino')
     autocomplete_fields = ('symbol',)
 
 
@@ -137,8 +252,8 @@ class CasinoImageAdmin(admin.ModelAdmin):
 
 @admin.register(AccountData)
 class AccountDataAdmin(admin.ModelAdmin):
-    list_display = ('id', 'login')
-    list_display_links = ('id', 'login')
+    list_display = ('id', 'login', 'user_name')
+    list_display_links = ('id', 'login', 'user_name')
 
 @admin.register(SisterCasino)
 class SisterCasinoAdmin(admin.ModelAdmin):
@@ -156,6 +271,7 @@ class BaseCurrencyAdmin(admin.ModelAdmin):
 class ClassicCurrencyAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'symbol')
     list_display_links = ('id', 'name')
+    search_fields = ('name', 'symbol')
 
 @admin.register(CryptoCurrency)
 class CryptoCurrenciesAdmin(admin.ModelAdmin):
@@ -165,7 +281,7 @@ class CryptoCurrenciesAdmin(admin.ModelAdmin):
 
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
-    form = ModelDataValidationForm
+    form = CountryDataValidationForm
     readonly_fields = ('slug',)
     list_display = ('id', 'name', 'name2', 'name3')
     list_display_links = ('name', 'name2', 'name3')
@@ -210,71 +326,53 @@ class LicensingAuthorityAdmin(admin.ModelAdmin):
     # inlines = (LicensesInline,)
     exclude = ('slug', )
 
+@admin.register(Affiliate)
+class AffiliateAdmin(admin.ModelAdmin):
+    search_fields = ('affiliate_program',)
+
+@admin.register(CasinoTheme)
+class CasinoThemeAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
 # ==================================================================================================================== #
 
-class SoldOutFilter(SimpleListFilter):
-    title = "Name Casino"
-    parameter_name = "name"
-
-    def lookups(self, request, model_admin):
-        return [
-            ("yes", "Yes"),
-            ("no", "No"),
-        ]
-
-    def queryset(self, request, queryset):
-        if self.value() == "yes":
-            return queryset.filter(name=0)
-        else:
-            return queryset.exclude(name=0)
 
 @admin.register(Casino)
 class CasinoAdmin(admin.ModelAdmin):
     save_on_top = True
     change_form_template = 'admin/casino_change_form.html'
-    # form = FilterAffiliateProgramAdminForm
-    # class Media:
-    #     js = (
-    #         'https://code.jquery.com/jquery-3.6.4.min.js',  # Подключение jQuery
-    #         'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js',  # Подключение Select2
-    #         # 'app_casinos/js/admin/admin3.js',
-    #     )
-    #     css = {
-    #         'all': (
-    #             # Подключение стилей Select2
-    #             'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css',
-    #             # 'app_casinos/css/admin/admin.css',
-    #         ),
-    #     }
-
     # Поле только для чтения
     readonly_fields = (
         'slug', 'owner', 'established',
         'games', 'game_providers',
-        'payment_methods',
+        'payment_methods', 'sisters_casinos',
     )
 
-    list_display = ('display_images', 'name', 'url', 'test_text')  # 'my_func' 'display_affiliate_program',
-    list_display_links = ('display_images', 'name')
+    list_display = ('name', 'url', 'shortened_notes', )  # 'display_images',
+    list_display_links = ('name', 'url', )  # 'display_images',
 
     inlines = (
-        CasinoImageInline, BonusesInline, WithdrawalLimitInline, SisterCasinoInline,
-        MinWageringInline, MinDepInline, AccountDataInline,  # GameInline
+        LoyaltyProgramInline, CasinoImageInline, BonusInline, WithdrawalLimitInline,
+        MinWageringInline, MinDepInline, AccountDataInline, SocialBonusInline,
     )
-    autocomplete_fields = ('affiliate_program',)
+    autocomplete_fields = ('affiliate', 'theme')
     fieldsets = (
 
         ('AFFILIATES', {
-            'fields': (
-                'affiliate_program', 'link_affiliate_program', 'link_affiliate',
-            )
+            'fields': ('affiliate',)
         }),
 
         ('BASIC INFORMATION', {
-            'fields': ('name', 'link_loyalty', 'url', 'link_casino_guru', 'link_tc',
-                       'link_bonus_tc', 'link_bonuses', 'owner', 'established',
-                       'live_chat_competence', 'special_notes',
+            'fields': ('name', 'casino_rank', 'theme', 'link_loyalty', 'url', 'link_casino_guru', 'link_tc',
+                       'link_bonus_tc', 'link_bonuses',
+                        'sportsbook', 'tournaments',
+                       'owner', 'established', 'sisters_casinos',
                        ),
+        }),
+
+        ('OTHER INFO', {
+            'fields': (
+                'live_chat_competence', 'special_notes',
+            )
         }),
 
         ('LANGUAGES', {
@@ -295,9 +393,9 @@ class CasinoAdmin(admin.ModelAdmin):
             )
         }),
 
-        ('OTHER INFO', {
+        ('ADDITIONAL OPTIONS', {
             'fields': (
-                'using_vpn', 'sportsbook', 'bonus_hunt_active_bonus', 'tournaments'
+                'vpn_usage', 'bonus_hunt_with_active_bonus',
             )
         }),
 
@@ -310,12 +408,12 @@ class CasinoAdmin(admin.ModelAdmin):
         }),
 
         ('RESPONSIBLE GAMBLING TOOLS', {
-            'fields': ('wager_limit', 'loss_limit', 'session_limit', 'self_exclusion',
-                       'cool_off', 'reality_check', 'self_assessment', 'withdrawal_lock',
+            'fields': ('deposit_limit', 'wager_limit', 'loss_limit', 'session_limit',
+                       'self_exclusion', 'gamstop_self_exclusion', 'cool_off', 'reality_check',
+                       'self_assessment', 'withdrawal_lock',
                        ),
         }),
     )
-
 
     # list_filter = ('',)
     filter_horizontal = (
@@ -331,127 +429,26 @@ class CasinoAdmin(admin.ModelAdmin):
         return format_html('<img src="{}" width="50" height="50" />',
                            obj.images.first().image.url) if obj.images.exists() else None
 
+    def shortened_notes(self, obj):
+        max_length = 255
+        if obj.special_notes:
+            if len(obj.special_notes) > max_length: return f'{obj.special_notes[:max_length]}...'
+            else: return obj.special_notes
+        else: return ''
 
-    def my_func(self, obj, *args, **kwargs):
-        # print(f"\nMy Func: {obj=}")
-        # print(f"{args=}\n{kwargs=}\n")
-        return False
+    shortened_notes.short_description = 'Special Notes'
 
-    def test_text(self, *args):
-        print(f"\n\nTest Text args: {args}")
-        return format_html("<string>{}</string>", 'Какой-то текст!')
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        comp = re.compile(r'\bbonuses-\d+-name\b')
+        # obj = self.get_object(request, object_id)
+        if request.POST:
+            keys_bonuses_name = [k for k in request.POST if re.search(comp, k)]
+            bonuses_names = [request.POST.get(k) for k in keys_bonuses_name if request.POST.get(k)]
 
-    def display_affiliate_program(self, obj: Casino):
-        print(f"\n[display_affiliate_program] obj type: {type(obj)}")
-        print(f"\n[display_affiliate_program] self dict:")
-        for data_self in self.__dict__:
-            print(f"{data_self}")
-            print('--' * 60)
-        print(f"\nForm Fields Overrides:\n{self.formfield_overrides}")
-        print(f"\nForm Fields Overrides Keys:\n{self.formfield_overrides.keys()}")
-        print("Form Fields Overrides Values:")
-        for key_formfield_overrides in self.formfield_overrides:
-            print('..' * 60)
-            print(self.formfield_overrides[key_formfield_overrides])
+            if len(bonuses_names) != len(set(bonuses_names)):
+                message = "DUPLICATE BONUS NAMES ARE NOT ALLOWED !"
+                self.message_user(request, message, level='ERROR')
+                return HttpResponseRedirect(reverse('admin:app_casinos_casino_change', args=(object_id,)))
 
-        if obj.affiliate_program:
-            link = reverse("admin:app_casinos_affiliatesprogram_change", args=[obj.affiliate_program.id])
-            return format_html('<a href="{}">{}</a>', link, obj.affiliate_program)
+        return super().change_view(request, object_id, form_url=form_url, extra_context=extra_context)
 
-    display_affiliate_program.short_description = "Affiliate Program"
-    # my_func.short_description = "Verified"
-    # my_func.boolean = True
-
-    # def get_fieldsets(self, request, obj=None):
-    #     fieldsets = super().get_fieldsets(request, obj=obj)
-    #     # Добавьте новый блок в форме
-    #     fieldsets += (
-    #         ('Дополнительные данные', {
-    #             'fields': ('slug',)
-    #         }),
-    #     )
-    #     return fieldsets
-
-    # def save_model(self, request, obj, form, change):
-    #     try:
-    #         account_data = obj.withdrawal_limit
-    #     except Exception as err:
-    #         print(err)
-    #         # super().save_model(request, obj, form, change)
-    #     else:
-    #         print('\nunlimited: ', obj.withdrawal_limit.unlimited)
-
-
-    # def save_model(self, request, obj, form, change):
-    #     print(f"{change=}")
-    #     change = False
-    #     try:
-    #         account_data = obj.withdrawal_limit
-    #     except Exception as err:
-    #         self.message_user(request, "Please fill in all fields in Withdrawal limit.", level='ERROR')
-    #         # raise forms.ValidationError("Record with this name already exists")
-    #         print(f"{request.path=}")
-    #         return HttpResponseRedirect(request.path)
-    #
-    #     super().save_model(request, obj, form, change)
-
-
-    # def save_model(self, request, obj, form, change):
-    #     super().save_model(request, obj, form, change)
-    #
-    #     country_names = form.cleaned_data.get('country_names', '')
-    #     country_names_list = [name.strip() for name in country_names.split(',') if name.strip()]
-    #
-    #     if country_names_list:
-    #         countries = [Country.objects.get_or_create(name=name)[0] for name in country_names_list]
-    #         obj.blocked_countries.set(countries)
-
-
-    #
-    # @csrf_exempt
-    # def import_countries_view(self, request, object_id=None, form_url='', extra_context=None):
-    #     print(f"\n{self=}")
-    #     print(f"\n{object_id=}")
-    #     if request.method == 'POST':
-    #         print(request.POST)
-    #         data_client = request.POST.get('data')
-    #         if data_client:
-    #             try:
-    #                 datas = [d.strip() for d in json.loads(data_client)['countries']]
-    #                 print(datas)
-    #                 models_casino: Casino = self.model
-    #                 print(f"\n\n{models_casino.blocked_countries}\n")
-    #                 object_country = models_casino.blocked_countries.crea
-    #                 object_country.name = 'sss'
-    #                 models_casino.blocked_countries.add()
-    #                 # Добавить данные в модель Country
-    #
-    #                 return JsonResponse({'message': 'Data imported successfully'})
-    #             except json.JSONDecodeError as e:
-    #                 return JsonResponse({'error': 'Invalid JSON format'})
-    #
-    #     return JsonResponse({'error': 'Invalid request'})
-    #
-    # # def get_urls(self):
-    # #     urls = super().get_urls()
-    # #     custom_urls = [
-    # #         path('<path:object_id>/import-countries/', self.import_countries_view, name='import_countries'),
-    # #     ]
-    # #     return custom_urls + urls
-    # def get_urls(self):
-    #     urls = super().get_urls()
-    #     custom_urls = [
-    #         path(r"add/import-countries/", self.import_countries_view, name='import_countries'),
-    #     ]
-    #     return custom_urls + urls
-
-
-    # def get_queryset(self, request):
-    #     return super().get_queryset(request).prefetch_related('bonuses')
-    #
-    # class Media:
-    #     css = {
-    #         'all': ('app_casinos/css/admin/admin.css',),
-    #     }
-    #
-    # exclude = ["licenses"]

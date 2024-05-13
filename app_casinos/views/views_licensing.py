@@ -1,4 +1,7 @@
-from app_casinos.serializers import *
+from app_casinos.views.objects_for_general_import import *
+
+from app_casinos.models.casino import LicensingAuthority
+from app_casinos.serializers import LicensingAuthoritySerializer
 
 
 class DeleteAllDataLicensingAuthorityAPIView(APIView):

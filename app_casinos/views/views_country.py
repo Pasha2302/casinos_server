@@ -1,4 +1,7 @@
-from app_casinos.serializers import *
+from app_casinos.serializers import CountrySerializer
+from app_casinos.views.objects_for_general_import import *
+
+from app_casinos.models.casino import Country
 
 
 class DeleteAllDataCountryAPIView(APIView):

@@ -1,8 +1,109 @@
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django import forms
 
-from app_casinos.all_models.models import Country
+from app_casinos.models.casino import Country, Casino, Game
+from django.forms.models import ModelMultipleChoiceField
+from django.core.exceptions import ValidationError
+
+
+class CustomFilteredSelectMultiple(FilteredSelectMultiple):
+    def __init__(self, verbose_name, is_stacked, attrs=None, choices=()):
+        super().__init__(verbose_name, is_stacked, attrs, choices)
+
+    # def get_context(self, name, value, attrs):
+    #     context = super().get_context(name, value, attrs)
+    #     context['queryset'] = Game.objects.none()  # Предотвращаем загрузку данных из модели Game
+    #     return context
+
+
+class CustomModelMultipleChoiceField(ModelMultipleChoiceField):
+    def __init__(self, queryset, **kwargs):
+        super().__init__(queryset, **kwargs)
+
+    def _check_values(self, value):
+        key = self.to_field_name or "pk"
+        try:
+            value = frozenset(value)
+        except TypeError:
+            raise ValidationError(
+                self.error_messages["invalid_list"],
+                code="invalid_list",
+            )
+        for pk in value:
+            try:
+                self.queryset.filter(**{key: pk})
+            except (ValueError, TypeError):
+                raise ValidationError(
+                    self.error_messages["invalid_pk_value"],
+                    code="invalid_pk_value",
+                    params={"pk": pk},
+                )
+        # qs = self.queryset.filter(**{"%s__in" % key: value})
+        qs = Game.objects.filter(**{"%s__in" % key: value})
+        pks = {str(getattr(o, key)) for o in qs}
+        # print("\n\nPKS:", pks)
+        for val in value:
+            # print('\nval:', val)
+            if str(val) not in pks:
+                raise ValidationError(
+                    self.error_messages["invalid_choice"],
+                    code="invalid_choice",
+                    params={"value": val},
+                )
+        return qs
+
+class BonusRestrictionGameInlineForm(forms.ModelForm):
+    game = CustomModelMultipleChoiceField(
+        # queryset=BonusRestrictionGame.objects.all(),
+        queryset=Game.objects.none(),
+        # queryset=kwargs.get('instance'),
+        # widget=FilteredSelectMultiple("Game", is_stacked=False),
+        widget=CustomFilteredSelectMultiple("Game", is_stacked=False),
+        # widget=forms.SelectMultiple(attrs={'size': '10'})
+        required=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Получаем экземпляр бонуса
+        self.bonus_instance = kwargs.get('instance')
+        # Если бонус уже существует, получаем выбранные игры и устанавливаем их как выбранные в поле
+        if self.bonus_instance:
+            selected_games = self.bonus_instance.game.all()
+            # queryset_all_game = Game.objects.none()
+            self.fields['game'].initial = [game.pk for game in selected_games]
+            self.fields['game'].queryset = selected_games
+
+    def clean_game(self):
+        print(f"\n\nclean_game".capitalize(), '!!!')
+        game = self.cleaned_data['game']
+        print(f"\nGame data: {game}")
+        print(f"\nself.fields['game'].queryset: {self.fields['game'].queryset}")
+        # if game != self.fields['game'].queryset:
+        #     raise forms.ValidationError("Invalid choice. Please select a valid game.")
+        return game
+
+
+class BonusAdminForm(forms.ModelForm):
+    """
+    Если ModelForm будет использоваться только для администратора,
+    самым простым решением будет опустить атрибут Meta.model,
+    так как ModelAdmin предоставит правильную модель для использования.
+    """
+
+
+class CasinoForm(forms.ModelForm):
+    class Meta:
+        model = Casino
+        # fields = ['title', 'authors', 'publisher']
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control custom-form-control'})
 
 
 class  PromotionPeriodForm(forms.ModelForm):
@@ -33,26 +134,12 @@ class RichTextEditorWidget(forms.Textarea):
             f'<div style="border: 1px solid #ccc; padding: 5px; background-color: #eaeae6;">{output_render}</div>'
         )
 
-class BonusAdminForm(forms.ModelForm):
-    """
-    Если ModelForm будет использоваться только для администратора,
-    самым простым решением будет опустить атрибут Meta.model,
-    так как ModelAdmin предоставит правильную модель для использования.
-    """
-    pass
-
 
 # ==================================================================================================================== #
-
-class ModelDataValidationForm(forms.ModelForm):
+class CountryDataValidationForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         check_initial = getattr(self, 'initial', None)
-        print(f"\n\n{self=} / {type(self)=}\n{self.__dict__=}")
-        print('==' * 60)
-        print(f"{cleaned_data=}\n{type(cleaned_data)=}")
-        print(f"\n{check_initial=}\n{type(check_initial)=}")
-
         if not check_initial and cleaned_data.get('name'):
             slug = slugify(cleaned_data['name'])
             if Country.objects.filter(slug=slug).exists():

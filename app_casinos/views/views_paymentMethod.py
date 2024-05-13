@@ -1,4 +1,6 @@
-from app_casinos.serializers import *
+from app_casinos.models.casino import PaymentMethod
+from app_casinos.serializers import PaymentMethodSerializer
+from app_casinos.views.objects_for_general_import import *
 
 
 class DeleteAllDataPaymentMethodAPIView(APIView):

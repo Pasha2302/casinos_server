@@ -8,18 +8,38 @@
 
 
 {% block field_sets %}
-  <div class="submit-row">
-    <button type="button" class="nav-button" data-target="1">CASINO</button>
-    <button type="button" class="nav-button" data-target="2">AFFILIATES</button>
-    <button type="button" class="nav-button" data-target="3">BONUS</button>
-  </div>
+    <div class="submit-row">
+        <button type="button" class="nav-button-casino" data-target="casino">CASINO</button>
+        <button type="button" class="nav-button-affiliates" data-target="affiliate-set">AFFILIATES</button>
+
+        <button type="button" class="nav-button-bonus" data-target="bonuses-group">BONUS</button>
+        <button type="button" class="nav-button-loyalty" data-target="loyalty_program-group">LOYALTY PROGRAM</button>
+    </div>
 
   {% for fieldset in adminform %}
       {% include "admin/fieldset.html" %}
   {% endfor %}
 
 
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-<script src="{% static 'app_casinos/js/admin/moving_blocks_to_change_form.js' %}"></script>
+<script>var csrf_token = "{{ csrf_token }}";</script>
+<!--<script src="{% static 'app_casinos/js/admin/customSelect.js' %}"></script>-->
+<!--<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>-->
 <script src="{% static 'app_casinos/js/admin/admin3.js' %}"></script>
+
+<!-- <script src="{% static 'app_casinos/js/admin/auto_fill_bonus_fields.js' %}"></script> -->
+<script src="{% static 'app_casinos/js/admin/get_data_for_autofill.js' %}"></script>
+<script src="{% static 'app_casinos/js/admin/management_of_bonus_blocks.js' %}"></script>
+<script src="{% static 'app_casinos/js/admin/set_auto_fill_bonus_fields.js' %}"></script>
+
+<script src="{% static 'app_casinos/js/admin/api_autofill.js' %}"></script>
+
+<script src="{% static 'app_casinos/js/admin/calculations_for_bonus.js' %}"></script>
+<script src="{% static 'app_casinos/js/admin/navigation_buttons.js' %}"></script>
+<script src="{% static 'app_casinos/js/admin/bonus_help_text.js' %}"></script>
+
+<script src="{% static 'app_casinos/js/admin/game_widget_control.js' %}"></script>
+<script src="{% static 'app_casinos/js/admin/game_filtering.js' %}"></script>
+
+<!--<script src="{% static 'app_casinos/js/admin/test2.js' %}"></script>-->
+
 {% endblock %}

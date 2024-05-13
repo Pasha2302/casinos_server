@@ -1,4 +1,9 @@
-from app_casinos.serializers import *
+from django.http import HttpResponse
+from rest_framework.utils import json
+
+from app_casinos.models.casino import ClassicCurrency, CryptoCurrency
+from app_casinos.serializers import CryptoCurrencySerializer, ClassicCurrencySerializer
+from app_casinos.views.objects_for_general_import import *
 
 
 class DeleteAllDataCurrencyAPIView(APIView):

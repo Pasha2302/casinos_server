@@ -11,11 +11,11 @@ bind = "127.0.0.1:8000"
 pidfile = f"gunicorn_pid.txt"
 
 # Это указывает Gunicorn на путь к вашему проекту Django.
-pythonpath = '/home/pavelpc/PycharmProjects/Working_Projects/Django_Casinos_Server'
+pythonpath = '/home/pavelpc/PycharmProjects/Test_Projects/Django_Test_Pogects/Django_Casinos_Server/'
 
 # Путь к статическим файлам Django (CSS, JavaScript, изображения и т.д.).
 # Должен соответствовать настройке STATIC_ROOT в файле настроек Django.
-raw_env = "DJANGO_STATIC_PATH=/home/pavelpc/PycharmProjects/Working_Projects/Django_Casinos_Server/casinos_server/static"
+raw_env = "DJANGO_STATIC_PATH=/home/pavelpc/PycharmProjects/Test_Projects/Django_Test_Pogects/Django_Casinos_Server/casinos_server/static"
 
 # Путь к файлу, в который будет записываться лог ошибок Gunicorn.
 # errorlog = "logServerCasino_gunicorn.log"

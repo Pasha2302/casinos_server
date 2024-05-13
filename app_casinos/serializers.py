@@ -1,11 +1,7 @@
-import json
-from django.http import HttpResponse
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
 from rest_framework import serializers
-from app_casinos.all_models.models import (
+
+from app_casinos.models.bonus import DataAutoFillBonus
+from app_casinos.models.casino import (
     ClassicCurrency, CryptoCurrency, Provider, Country,
     LicensingAuthority, Language,GameType, Game, PaymentMethod
 )
@@ -59,3 +55,15 @@ class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
         fields = '__all__'
+
+
+class GameSerializerFilter(serializers.ModelSerializer):
+    class Meta:
+        model = Game
+        fields = ('id', 'name')
+
+
+class DataAutoFillBonusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DataAutoFillBonus
+        fields = ('name', 'data')

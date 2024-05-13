@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-@gih%fg1fk7iefkx0jhf#($(6c+k!0g4hoel7229$&5@6&sew9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1',]
+ALLOWED_HOSTS = ['7e1e-2a00-1fa0-316-9477-c71f-4c0c-cf23-873b.ngrok-free.app', '0.0.0.0', '127.0.0.1',]
 
 
 # Application definition
@@ -75,7 +75,7 @@ WSGI_APPLICATION = 'casinos_server.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'casino_parsing_test',
+        'NAME': 'casino_parsing',
         'USER': 'pavelpc',
         'PASSWORD': '1234',
         'HOST': '127.0.0.1',

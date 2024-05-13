@@ -1,4 +1,6 @@
-from app_casinos.serializers import *
+from app_casinos.models.casino import Language
+from app_casinos.serializers import LanguageSerializer
+from app_casinos.views.objects_for_general_import import *
 
 
 class DeleteAllDataLanguageAPIView(APIView):

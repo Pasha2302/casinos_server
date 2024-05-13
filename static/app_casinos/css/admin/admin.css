@@ -1,9 +1,9 @@
-
 .inline-group {
-    max-height: 430px;
+    max-height: 500px;
     overflow-y: auto;
 }
 
+/*
 .custom-button {
   margin-top: 20px;
   padding: 10px;
@@ -15,33 +15,25 @@
   display: block;
   margin-bottom: 10px;
 }
+*/
 
-.custom-button:hover {
-  background-color: #45a049;
-}
-
-#file-input {
-  display: none;
-}
-
-
-.aligned label + div.readonly {
+.aligned label+div.readonly {
     padding: 21px 0;
     margin-top: 0;
     margin-bottom: 0;
     margin-left: 0;
     overflow-wrap: break-word;
 
-    max-height: 200px; /* Задайте максимальную высоту поля */
-    overflow-y: auto; /* Добавляет внутренний скролл, если содержимое превышает установленную высоту */
-    background-color: #ffffcc; /* Светло-жёлтый цвет фона */
+    max-height: 200px;
+    /* Задайте максимальную высоту поля */
+    overflow-y: auto;
+    /* Добавляет внутренний скролл, если содержимое превышает установленную высоту */
 }
 
 
-tr[id^="sister_casinos-"] {
-    background-color: #ffffcc; /* Светло-жёлтый цвет фона */
-    /*color: #333; /* Цвет текста (например, тёмно-серый) */
-}
+/* tr[id^="sister_casinos-"] {
+    background-color: #ffffcc;
+} */
 
 /* Скрыть отчистку (удаление) ссылки на изображение */
 input[name^="images-"][name$="-image-clear"] {
@@ -51,31 +43,240 @@ input[name^="images-"][name$="-image-clear"] {
 
 /* Навигационная панель (button):*/
 /* Стили для кнопок */
-.nav-button, .show-all-button {
-  appearance: none;
-  font-weight: 400;
-  text-transform: uppercase;
-  background: var(--default-button-hover-bg);
-  border: 1px solid transparent;
-  border-radius: 5px;
-  cursor: pointer;
-  margin: 5px;
-  transition: background 0.3s, border-color 0.3s, color 0.3s; /* Добавлен transition для изменения цвета текста */
-  padding: 10px 15px;
-  color: #f8f8f8;
+.nav-button-casino,
+.nav-button-affiliates,
+.nav-button-bonus,
+.nav-button-loyalty,
+.button-title {
+    appearance: none;
+    font-weight: 400;
+    text-transform: uppercase;
+    background: var(--default-button-hover-bg);
+    border: 1px solid transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+    /* Добавлен transition для изменения цвета текста */
+    padding: 10px 15px;
+    color: #f8f8f8;
 }
 
 /* Подсветка при наведении */
-.nav-button:hover, .show-all-button:hover {
-  background: #24a675;
-  border-color: var(--default-button-border);
+.nav-button-casino:hover,
+.nav-button-affiliates:hover,
+.nav-button-bonus:hover,
+.nav-button-loyalty:hover,
+.button-title:hover {
+    background: #24a675;
+    border-color: var(--default-button-border);
+}
+
+
+.btn-info-filter {
+    appearance: none;
+    font-weight: 400;
+    background: var(--default-button-hover-bg);
+    border: 1px solid transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+    /* Добавлен transition для изменения цвета текста */
+    padding: 10px 15px;
+    color: #f8f8f8;
+}
+
+.btn-info-filter:hover {
+    background: #24a675;
+    border-color: var(--default-button-border);
 }
 
 /* Стили для активной (выбранной) кнопки */
-.nav-button.active, .show-all-button.active {
+.nav-button-casino.active,
+.nav-button-affiliates.active,
+.nav-button-loyalty.active,
+.nav-button-bonus.active {
     background: #18c3b5;
     border-color: #3bd0b3;
     color: #ffffff;
     outline: none;
 }
 
+
+/* Регулировка полей ввода (числа): */
+.aligned label {
+    display: block;
+    padding: 4px 10px 0 0;
+    min-width: 160px;
+    width: 182px;
+    word-wrap: break-word;
+    line-height: 0;
+}
+
+input[name="calculation_bonus_deposit"],
+input[name="calculation_bonus_only"] {
+    /* Начальная ширина */
+    /* width: 200px; */
+    width: auto;
+    /* Учитываем padding и border в расчете ширины */
+}
+
+
+
+.aligned .vCheckboxLabel {
+    float: none;
+    width: auto;
+    display: inline-block;
+    vertical-align: -3px;
+    padding: 8px 0 5px 5px;
+}
+
+/*=============================================================================================================================*/
+.copy-message.success {
+    color: rgb(119, 238, 119);
+}
+
+.copy-message.error {
+    color: red;
+}
+
+
+
+/* .inline-deletelink {
+    display: flex;
+} */
+
+
+/* th[innerText="Delete?"] {
+    text-align: right;
+} */
+/* .delete {
+    display: flex;
+    float: right;
+} */
+
+/* .inline-related.tabular fieldset.module table {
+    width: 100%;
+    overflow-x: scroll;
+    text-align: center;
+}
+*/
+
+.inline-deletelink {
+    border: 0px solid black;
+    border-radius: 34%;
+    width: 65px;
+    height: 18px;
+    background-color: rgb(249 144 144);
+}
+
+
+td[class='delete'],
+.delete-use {
+    text-align: end;
+}
+
+/* .column-selected_source,
+.field-selected_source {
+    float: left;
+    width: 50%;
+} */
+
+/* .column-unlimited {
+    width: 50%;
+} */
+
+
+form .aligned p.help,
+form .aligned div.help {
+    margin-top: 0;
+    margin-left: -10px;
+    padding-left: 10px;
+}
+
+.form-row div.help {
+    padding: 2px 55px;
+}
+
+.datetimeshortcuts {
+    position: absolute;
+    bottom: 0px;
+    margin-top: 0px;
+    margin-left: -135px;
+    padding-left: 0px;
+}
+
+
+#page-list {
+    width: 60px;
+    height: 30px;
+    font-size: 16px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #333;
+    outline: none;
+}
+
+
+#page-list option {
+    font-size: 16px;
+    background-color: #fff;
+    color: #333;
+}
+
+.select-game-label {
+    padding: 5px;
+    margin-left: 40px;
+    padding-left: 0px;
+}
+
+
+
+
+#send-filter-data {
+    background-color: #417690;
+    color: white;
+    padding: 7px 25px;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.3s ease;
+    position: relative;
+    top: -1px;
+    left: 20px;
+}
+
+/* Стили для наведения на кнопку */
+#send-filter-data:hover {
+    background-color: #45a049;
+    /* Изменяем цвет фона при наведении */
+}
+
+/* Стили для нажатия на кнопку */
+#send-filter-data:active {
+    background-color: #357a38;
+    /* Изменяем цвет фона при нажатии */
+}
+
+
+.wrapper-filter_1 {
+    display: flex;
+    flex-direction: column-reverse;
+    overflow: hidden; /* Ограничение размеров дочерних элементов */
+}
+
+.check-save-block {
+    background-color: initial;
+    cursor: default;
+    appearance: auto;
+    box-sizing: border-box;
+    margin: 0px -26px 0px 1px;
+    padding: initial;
+    border: initial;
+    width: 80px;
+    height: 20px;
+}

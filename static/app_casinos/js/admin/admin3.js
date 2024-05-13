@@ -1,82 +1,318 @@
-(function ($) {
-  $(document).ready(function () {
-    const SelectBox = window.SelectBox
+'use strict';
+
+const $ = django.jQuery;
+
+
+let observers = {};
+
+
+function newFilter() {
+    const checkIdsCurrency = ['id_licenses_from', 'id_licenses_to'];
+    const SelectBox = window.SelectBox;
+
     SelectBox.filter = function (id, text) {
-      console.log("Select Filter [id]:", id)
-      const tokens = text.toLowerCase().split(',').map((t) => t.trim());
-      for (const node of SelectBox.cache[id]) {
-        if (tokens.lenght === 0) {
-          node.displayed = 1;
-          continue;
-        }
-        node.displayed = 0;
-        const node_text = node.text.toLowerCase();
-        for (const token of tokens) {
-          if (node_text.includes(token)) {
-            node.displayed = 1;
-            break;
-          }
-        }
-      }
-      SelectBox.redisplay(id);
+        if (id === 'id_restriction_game-0-game_from') return;
+        console.log("\nSelect Filter [id]:", id)
+        // -------------------------------------------------------
+        const inputTokens = text.toLowerCase().split(',').map((t) => t.trim());
+        console.log('inputTokens:', inputTokens);
+
+        for (const node of SelectBox.cache[id]) {
+            if (inputTokens[0] === '') {
+                // console.log('\n Отображаю все записи.');
+                node.displayed = 1;
+                continue;
+            }
+
+            node.displayed = 0;
+            // const node_texts = node.text.toLowerCase().split('|').map((t) => t.trim());
+            const node_text = node.text.toLowerCase();
+            for (const token of inputTokens) {
+
+                if (!checkIdsCurrency.includes(id)) {
+                    let regex = new RegExp(`(?:^|\\s|[^\\p{L}])${escapeRegExp(token)}(?:$|\\s|[^\\p{L}])`, 'ui');
+                    if (regex.test(node_text)) {
+                        node.displayed = 1;
+                        break;
+                    };
+                } else {
+                    if (node_text.includes(token)) {
+                        node.displayed = 1;
+                        break;
+                    }
+                }
+            };
+        };
+
+        SelectBox.redisplay(id);
+    };
+    // Функция для экранирования спецсимволов в регулярном выражении
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& означает всю совпавшую строку
     }
-  });
-})(jQuery);
+};
 
 
-document.addEventListener('DOMContentLoaded', function () {
-  const buttons = document.querySelectorAll('.nav-button, .show-all-button');
-  const fieldsets = document.querySelectorAll('.form-fieldset');
-  const showAllButton = document.querySelector('.show-all-button');
-  const formsetBlocks = document.querySelectorAll('.js-inline-admin-formset.inline-group');
+function deleteTags() {
+    console.log("\n\nУдаляю лишние Теги ...")
+    const elmsHelpTimeZone = document.querySelectorAll('.help.timezonewarning');
+    const elmD = document.querySelector('#add_id_day_of_week-0-days');
+    if (elmD) elmD.remove();
 
-  function hideFormsetBlocks() {
-    formsetBlocks.forEach(function (formsetBlock) {
-      formsetBlock.style.display = 'none';
-    });
-  }
+    // const deleteLinks = document.querySelectorAll('.inline-deletelink');
+    const searchElmsH3 = document.querySelectorAll(".inline-related");
+    const searchElmsP = document.querySelectorAll("td[class='original']");
 
-  function setActiveButton(button) {
-    buttons.forEach(function (btn) {
-      btn.classList.remove('active');
-    });
-    button.classList.add('active');
-  }
+    const timezoneWarning = document.querySelectorAll('.timezonewarning');
+    if (timezoneWarning) timezoneWarning.forEach((element) => {
+        if (element) element.remove();
+    })
 
-  buttons.forEach(function (button) {
-    button.addEventListener('click', function () {
-      let target = button.getAttribute('data-target');
+    elmsHelpTimeZone.forEach(element => element.remove());
 
-      // Скрыть все блоки форм
-      fieldsets.forEach(function (fieldset) {
-        fieldset.style.display = 'none';
-      });
-
-      // Скрыть все блоки formset
-      hideFormsetBlocks();
-
-      // Показать выбранный блок форм
-      if (document.getElementById(target)) {
-        document.getElementById(target).style.display = 'block';
-
-        // Установить активную кнопку
-        setActiveButton(button);
-      }
-    });
-  });
-
-  showAllButton.addEventListener('click', function () {
-    // Показать все блоки форм
-    fieldsets.forEach(function (fieldset) {
-      fieldset.style.display = 'block';
+    searchElmsP.forEach(element => {
+        let pElement = element.querySelector('p');
+        if (pElement) {
+            element.removeChild(pElement);
+        }
     });
 
-    // Показать все блоки formset
-    formsetBlocks.forEach(function (formsetBlock) {
-      formsetBlock.style.display = 'block';
+    searchElmsH3.forEach(element => {
+        let h3Element = element.querySelector('h3');
+        if (h3Element) {
+            element.removeChild(h3Element);
+        }
     });
 
-    // Установить активную кнопку
-    setActiveButton(showAllButton);
-  });
+    // deleteLinks.forEach(element => element.remove());
+};
+
+// ======================================================================================================================= //
+
+function capitalizeEveryWord(str) {
+    return str.replace(/\b\w/g, function (match) {
+        return match.toUpperCase();
+    });
+}
+
+
+function getValuesAndCountElm(idBlock) {
+    let listValuesObj = document.getElementById(idBlock).querySelector('select[class="filtered"]').querySelectorAll('option');
+    let listValuesStr = [];
+
+    for (let valueObj of listValuesObj) {
+        let dataText = valueObj.innerHTML.split('|')[0].trim();
+        listValuesStr.push(dataText);
+    };
+    // console.log("List Values Objects:", listValuesObj, typeof listValuesObj);
+    // console.log("List Values String:", listValuesStr, typeof listValuesStr);
+    return {
+        valuesStr: listValuesStr.join(','),
+        count: listValuesStr.length,
+    }
+}
+
+
+// Функция для копирования выбранных элементов в буфер обмена:
+function eventBtnInfoFilter(event) {
+    let eventBlockId = event.target.attributes.data.nodeValue;
+    let valuesAndCount = getValuesAndCountElm(eventBlockId);
+    let btnText = event.target.innerText;
+    var messageContainer;
+    // Делаем кнопку неактивной
+    $(event.target).prop('disabled', true);
+
+    navigator.clipboard.writeText(valuesAndCount.valuesStr)
+        .then(() => {
+            messageContainer = $('<span>', {
+                class: 'copy-message success',
+                text: ' (Copied to clipboard)'
+            });
+        })
+        .catch(err => {
+            messageContainer = $('<span>', {
+                class: 'copy-message error',
+                text: ' (Copy error)'
+            });
+        })
+        .finally(() => {
+            // Добавляем сообщение к кнопке
+            $(event.target).append(messageContainer);
+
+            // Удаляем сообщение через 3 секунды
+            setTimeout(() => {
+                messageContainer.fadeOut(() => {
+                    messageContainer.remove();
+                });
+                // Делаем кнопку снова активной
+                $(event.target).prop('disabled', false);
+            }, 3000);
+        });
+}
+
+
+// Функция для отслеживания изменений в дочерних элементах <select>
+function observeSelectChildren(blockId) {
+    // let selectElement = document.getElementById(blockId).querySelector('select[class="filtered"]');
+    let selectElement = document.querySelector('#' + blockId + ' select.filtered');
+    let prevLength = selectElement.options.length;
+    // console.log(selectElement);
+    let observer = new MutationObserver(function (mutations) {
+        for (let mutation of mutations) {
+            // console.log('Тип мутации:', mutation.type);
+            // console.log('Цель мутации:', mutation.target);
+            // console.log('Мутация:', mutation);
+            // Проверяем, были ли добавлены или удалены дочерние элементы
+            if (mutation.type === 'childList') {
+                let newLength = selectElement.options.length;
+                if (newLength !== prevLength) {
+                    // console.log('Количество элементов в блоке изменилось:', newLength);
+                    let btn = $(`button[data="${blockId}"]`);
+                    btn.text(btn.text().replace(/Count \(\d+\)/, `Count (${newLength})`));
+                    prevLength = newLength; // Обновляем предыдущее значение
+                    break; // Выходим из цикла после первого изменения
+                }
+            }
+        }
+    });
+    // observer.observe(selectElement, { childList: true, subtree: true });
+    observer.observe(selectElement, { childList: true, subtree: false });
+    observers[blockId] = observer; // сохраняем экземпляр наблюдателя
+}
+
+
+// Функция для прекращения прослушивания изменений для всех блоков
+function stopObservingAllBlocks() {
+    for (let blockId in observers) {
+        observers[blockId].disconnect();
+    }
+}
+
+
+function addButtonToCopyData() {
+    let blocksChosen = document.querySelectorAll('.selector-chosen');
+
+    for (let blockChosen of blocksChosen) {
+        let blockId = blockChosen.attributes.id.nodeValue;
+        if (blockId === 'id_restriction_game-0-game_selector_chosen') continue;
+
+        let valuesAndCount = getValuesAndCountElm(blockId);
+        let btnInfoFilter = $(`<button type="button" class="btn-info-filter" data="${blockId}">`);
+        let textH2 = capitalizeEveryWord(blockChosen.querySelector('h2').innerText.replace('Chosen', '').trim());
+        // console.log("\nBlock Chosen ID:", blockId);
+        btnInfoFilter.text(`${textH2} Count (${valuesAndCount.count})`);
+
+        $(blockChosen).first().find('a').before(btnInfoFilter);
+        btnInfoFilter.on('click', eventBtnInfoFilter);
+    };
+
+    // После добавления всех кнопок запускаем наблюдение за изменениями
+    for (let blockChosen of blocksChosen) {
+        let blockId = blockChosen.attributes.id.nodeValue;
+        observeSelectChildren(blockId);
+    };
+
+    $('.submit-row').find('input[type="submit"], a').each(function () {
+        // Добавляем обработчик события для каждой кнопки сохранения или удаления.
+        $(this).on('click', function (event) {
+            stopObservingAllBlocks();
+            // console.log('Кнопка нажата:', event.target.value);
+        });
+    });
+
+}
+
+
+function setClass() {
+    const elmsDelete = $('th:contains("Delete?")');
+    elmsDelete.addClass('delete-use');
+    // console.log(elmsDelete);
+}
+
+
+function func1() {
+    const blocks = $('.inline-related.tabular fieldset.module');
+
+    for (let block of blocks) {
+        let elmsTh = $(block).find('th');
+        for (let i = 0; i < elmsTh.length; i++) {
+            if (elmsTh[i].classList.contains('column-selected_source')) {
+                elmsTh[i - 1].style.width = '100%';
+                // console.log(elmsTh[i]);
+            };
+        };
+        // console.log('\n', elmsTh.length);
+        // console.log(elmsTh[2].classList);
+        // console.log('=='.repeat(40))
+    };
+}
+
+
+function formatNumbers() {
+    const integerFields = document.querySelectorAll('input[type="number"]');
+    integerFields.forEach(field => {
+        const value = field.value;
+        if (/^-?\d+e-\d+$/.test(value)) { // Проверяем, соответствует ли значение формату экспоненты
+            const [base, exponent] = value.split('e-'); // Разбиваем значение на основание и экспоненту
+            const result = '0.' + '0'.repeat(exponent - 1) + base; // Составляем строку с добавлением нулей и точки
+            field.value = result; // Устанавливаем новое значение поля
+        }
+
+        field.addEventListener('input', function () {
+            // Получаем значение поля и преобразуем его в число
+            let value2 = parseInt(this.value);
+            if (value2 < 0) {
+                // Убираем знак "-"
+                this.value = Math.abs(value2);
+            }
+        });
+    });
+}
+
+
+function createPagination() {
+    // Находим элемент, в который нужно встроить блок кода
+    let targetElement = document.querySelector('#restriction_game-0 .selector-available h2');
+    // Создаем элементы <select>, <label> и <button> с нужными атрибутами и текстом
+    let selectElement = document.createElement('select');
+    let labelElement = document.createElement('label');
+    let buttonElement = document.createElement('button');
+
+    selectElement.setAttribute('id', 'page-list');
+    selectElement.setAttribute('name', 'page-list');
+
+    buttonElement.setAttribute('id', 'send-filter-data');
+    buttonElement.setAttribute('type', 'button');
+    buttonElement.textContent = 'Send Filter';
+
+    // Устанавливаем атрибуты и текст для label
+    labelElement.textContent = 'Page:';
+    labelElement.setAttribute('for', 'page-list');
+    labelElement.setAttribute('class', 'select-game-label');
+
+    // Вставляем элементы в DOM
+    targetElement.appendChild(labelElement);
+    targetElement.appendChild(selectElement);
+    selectElement.insertAdjacentElement('afterend', buttonElement);
+}
+
+
+
+$(document).ready(function () {
+    const checkExist = setInterval(function () {
+        var element = document.querySelector('#restriction_game-0 .selector-available h2');
+        if (element) {
+            clearInterval(checkExist); // Остановить проверку, если элемент найден
+
+            newFilter();
+            createPagination();
+            deleteTags();
+            addButtonToCopyData();
+            setClass();
+            func1();
+            formatNumbers();
+        }
+    }, 300); // Проверять наличие элемента каждые 100 миллисекунд
 });
+
+
