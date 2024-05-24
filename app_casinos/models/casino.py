@@ -64,12 +64,9 @@ class WithdrawalLimit(models.Model):
 
 class SisterCasino(models.Model):
     name = models.CharField(max_length=255, blank=True)
-    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE)
 
-    def save(self, *args, **kwargs):
-        if not self.selected_source or self.selected_source not in dict(CHOICES_SOURCE):
-            raise ValueError("Exactly one option must be selected.")
-        super().save(*args, **kwargs)
+    def __str__(self):
+        return self.name
 
 
 class MinWagering(models.Model):
@@ -181,12 +178,10 @@ class GameType(models.Model):
 
 
 class Provider(models.Model):
-    slug = models.SlugField(unique=True, db_index=True, blank=True, max_length=255)
     name = models.CharField(max_length=255, verbose_name="Provider Name")
+
     def __str__(self):
         return self.name
-    def save(self, *args, **kwargs):
-        save_slug(self, super(), additionally=None, *args, **kwargs)
 
 
 class Game(models.Model):
@@ -204,12 +199,10 @@ class Game(models.Model):
 
 
 class PaymentMethod(models.Model):
-    slug = models.SlugField(unique=True, db_index=True, blank=True, max_length=255)
     name = models.CharField(max_length=255, verbose_name="Game Name")
+
     def __str__(self):
         return self.name
-    def save(self, *args, **kwargs):
-        save_slug(self, super(), additionally=None, *args, **kwargs)
 
 
 class BaseCurrency(models.Model):
@@ -309,6 +302,7 @@ class SocialBonus(models.Model):
 
 class Casino(models.Model):
     CHOICES_LIVE_CHAT = [
+        ("", ""),
         ("no_chat", 'No Chat'),
         ("didn't_answer_to_questions", "Didn't Answer to Questions"),
         ("high_competence", 'High Competence'),
@@ -317,6 +311,7 @@ class Casino(models.Model):
         ("below_average", 'Below Average'),
         ("incompetent", 'Incompetent'),
     ]
+    is_pars_data = models.BooleanField(default=False)
     affiliate = models.OneToOneField(
         "Affiliate", null=True, blank=True, on_delete=models.SET_NULL, related_name='casino')
 
@@ -350,7 +345,7 @@ class Casino(models.Model):
     language_website = models.ManyToManyField("Language", related_name='casino_website',
                                               help_text=text_casino_website_languages)
     language_live_chat = models.ManyToManyField("Language", related_name='casino_live_chat',
-                                                help_text=text_casino_livechat_languages)
+                                                help_text=text_casino_livechat_languages, null=True, blank=True)
     blocked_countries = models.ManyToManyField("Country", related_name='casino',
                                                help_text=text_casino_blocked_countries)
     licenses = models.ManyToManyField("LicensingAuthority", related_name='casino',
@@ -381,7 +376,7 @@ class Casino(models.Model):
 
     special_notes = models.TextField(blank=True)
     live_chat_competence = models.CharField(
-        null=True, max_length=50, choices=CHOICES_LIVE_CHAT, default='High Competence')
+        null=True, max_length=50, choices=CHOICES_LIVE_CHAT, default='',blank=True)
     bonus_hunt_with_active_bonus = models.BooleanField(default=False, help_text=text_casino_bonus_hunt)
 
     objects: QuerySet = models.Manager()

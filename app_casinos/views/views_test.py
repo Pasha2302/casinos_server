@@ -1,11 +1,5 @@
 import json
-
 from django.http import HttpRequest, JsonResponse
-# from django.forms import modelformset_factory
-
-from django.shortcuts import render, redirect
-from app_casinos.forms import CasinoForm
-from app_casinos.models.casino import Casino
 
 
 def get_data(request: HttpRequest):

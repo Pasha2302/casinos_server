@@ -19,7 +19,8 @@ const inlineBlockGroups = [
     {
         titleBlock: "WAGERING",
         listIds: [
-            "#turnover_bonus-group", "#wagering_bonus_plus_deposit-group", "#wagering-group", "#wagering_contribution-group",
+            "#slots_wagering-group", "#turnover_bonus-group", "#wagering_bonus_plus_deposit-group",
+            "#wagering-group", "#wagering_contribution-group",
         ]
     },
     {
@@ -180,14 +181,8 @@ function createDataCheckBox(casinoKey) {
         'max_bet-group', 'max_bet_automatic-group', 'buy_feature-group',
     ];
     const listidCheckBoxs = [];
-
-    // var dataChechBox = { listidCheckBoxs: [], };
     var dataChechBox = {};
-    if (localStorage.getItem('dataChechBox')) {
-        dataChechBox = JSON.parse(localStorage.getItem('dataChechBox'));
-    };
-
-    if (!dataChechBox[casinoKey]) dataChechBox[casinoKey] = {};
+    dataChechBox[casinoKey] = {};
 
     const autocompleteBlocksElms = autocompleteBlocksIds.map((value) => {
         if (!dataChechBox[casinoKey][`${value}-check_id`]) {
@@ -199,6 +194,7 @@ function createDataCheckBox(casinoKey) {
             dataChechBox[casinoKey][`${value}-check_id`]['suffixIdRow'] = suffixIdRow;
             dataChechBox[casinoKey][`${value}-check_id`]['prefixIdValue'] = prefixIdValue;
         }
+        if (!listidCheckBoxs.includes(`${value}-check_id`)) { listidCheckBoxs.push(`${value}-check_id`); }
         return document.getElementById(value);
     });
 
@@ -212,8 +208,6 @@ function createDataCheckBox(casinoKey) {
             const texth2 = elmH2.textContent.toLowerCase().replaceAll(' ', '_');
             const idCheckBox = `${elmAutoBlock.id}-check_id`;
 
-            if (!listidCheckBoxs.includes(idCheckBox)) { listidCheckBoxs.push(idCheckBox); }
-
             checkBox.setAttribute('type', 'checkbox');
             checkBox.setAttribute('name', texth2);
             checkBox.setAttribute('id', idCheckBox);
@@ -224,17 +218,14 @@ function createDataCheckBox(casinoKey) {
             elmH2.appendChild(elmLable);
             elmLable.textContent = 'Save Data Block.';
 
-            // Добавляем обработчик события изменения состояния чекбокса  =============== >>>>
+            // <<<< =============== Добавляем обработчик события изменения состояния чекбокса  =============== >>>>
             checkBox.addEventListener("change", function (event) {
                 const eventTargetElm = event.target;
                 const checkBoxId = eventTargetElm.id
                 const _casinoKey = $('#id_casino').select2('data')[0].id;
 
-                dataChechBox = JSON.parse(localStorage.getItem("dataChechBox"));
                 dataChechBox[_casinoKey][checkBoxId].isChecked = eventTargetElm.checked;
-
                 window.getDataAutoFillBonus(eventTargetElm, dataChechBox, _casinoKey);
-
                 // Проверяем, установлена ли галочка в чекбоксе
                 if (eventTargetElm.checked) { eventTargetElm.parentElement.style.backgroundColor = 'rgb(19 180 98)'; }
                 else { eventTargetElm.parentElement.style.backgroundColor = ''; }
@@ -243,21 +234,28 @@ function createDataCheckBox(casinoKey) {
         isCreateCheckBox = true;
     }
 
-    localStorage.setItem('dataChechBox', JSON.stringify(dataChechBox))
-    var checkData = JSON.parse(localStorage.getItem("dataChechBox"));
-    if (checkData) {
-        listidCheckBoxs.forEach((valueId) => {
-            const checkbox = document.getElementById(valueId);
-            if (checkData[casinoKey] && checkData[casinoKey][valueId].isChecked) {
-                checkbox.checked = true;
-                if (checkbox.checked) { checkbox.parentElement.style.backgroundColor = 'rgb(19 180 98)' };
+    window.apiAutoFill('GET', casinoKey)
+        .then(response => {
+            if (response.data) { dataChechBox[casinoKey] = response.data }
+            else { window.apiAutoFill('POST', casinoKey, dataChechBox[casinoKey]) };
+            // console.log("\nRes API <'GET', casinoKey> check Casino In Db:", response);
+            // console.log("\ndataChechBox:", dataChechBox);
 
-            } else {
-                checkbox.checked = false;
-                checkbox.parentElement.style.backgroundColor = '';
-            }
+            console.log('\n\nПроверка установленых Чек-Боксов ...', dataChechBox);
+            listidCheckBoxs.forEach((valueId) => {
+                const checkbox = document.getElementById(valueId);
+                if (dataChechBox[casinoKey] && dataChechBox[casinoKey][valueId].isChecked) {
+                    checkbox.checked = true;
+                    if (checkbox.checked) { checkbox.parentElement.style.backgroundColor = 'rgb(19 180 98)' };
+                } else {
+                    checkbox.checked = false;
+                    checkbox.parentElement.style.backgroundColor = '';
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
         });
-    }
 }
 
 
@@ -283,6 +281,7 @@ function createWhenChangingCasino() {
 
         if (_data) { createDataCheckBox(_data.id); };  // _data.id: casinoKey
         checkingCurrentPage(_data.id);
+        defineActiveField();
     });
 }
 

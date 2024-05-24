@@ -4,3 +4,4 @@ env
 *.log
 check_create_db.txt
 tmpu2r3_px_
+*.zip

@@ -16,9 +16,11 @@
         const datas = _datas.data;
         let selectedSourceElm = document.getElementById(datas.idSourceValue);
         let selectElementTo = document.getElementById(datas.idSelectBlockTo);
+        let selectElementFrom = document.getElementById('id_restriction_game-0-game_from');
 
         selectedSourceElm.value = datas.sourceValue;
         selectElementTo.innerHTML = '';
+        selectElementFrom.innerHTML = '';
 
         for (const data of datas.selectDataTo) {
             let optionElement = document.createElement('option');
@@ -77,7 +79,7 @@
             addExpirationDays(_data, parentRow, prefixIdValue);
         } else {
             let valueElm = parentRow.querySelector(`[id^="${prefixIdValue}"][id$="_value"]`);
-            if (!valueElm) {valueElm = parentRow.querySelector(`[id^="${prefixIdValue}"][id$="-value"]`);}
+            if (!valueElm) { valueElm = parentRow.querySelector(`[id^="${prefixIdValue}"][id$="-value"]`); }
 
             let symbolElm = $(parentRow).find(`[id^="${prefixIdValue}"][id$="-symbol"]`).eq(0);
             let selectedSourceElm = parentRow.querySelector(`[id^="${prefixIdValue}"][id$="-selected_source"]`);
@@ -87,7 +89,7 @@
                 console.error("\nПроизошла ошибка:", error);
                 console.error("Input Data:", _data);
             }
-            
+
             symbolElm.select2('trigger', 'select', { data: _data.symbol });
             selectedSourceElm.value = _data.source;
             if (_data.unlimited !== null) {
@@ -158,15 +160,24 @@
 
     window.setAutoFillBonus2 = function (casinoKey) {
         const checkListId_3 = ['restriction_game-group-check_id', 'restriction_country-group-check_id'];
-        var dataChechBox = JSON.parse(localStorage.getItem("dataChechBox"));
+        // var dataChechBox = JSON.parse(localStorage.getItem("dataChechBox"));
+        let dataChechBox = {};
 
-        for (let key in dataChechBox[casinoKey]) {
-            if (checkListId_3.includes(key)) {
-                addDataBonusMtoM(dataChechBox[casinoKey][key]);
-            } else {
-                addDataBonus(dataChechBox[casinoKey][key], key);
-            }
-        }
+        window.apiAutoFill('GET', casinoKey)
+            .then(response => {
+                if (response.data) { dataChechBox[casinoKey] = response.data };
 
+                for (let key in dataChechBox[casinoKey]) {
+                    if (checkListId_3.includes(key)) {
+                        addDataBonusMtoM(dataChechBox[casinoKey][key]);
+                    } else {
+                        addDataBonus(dataChechBox[casinoKey][key], key);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+            
     }
 }

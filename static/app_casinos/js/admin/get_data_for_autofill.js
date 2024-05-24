@@ -41,8 +41,6 @@
             };
             dataChechBox[_casinoKey][checkBoxEvent.id].data.push(dataRow)
         }
-
-        localStorage.setItem('dataChechBox', JSON.stringify(dataChechBox));
     }
 
 
@@ -55,7 +53,6 @@
 
             dataChechBox[_casinoKey][checkBoxEvent.id].data.push({ rtpValue: rtpValue, source: sourceValue })
         }
-        localStorage.setItem('dataChechBox', JSON.stringify(dataChechBox));
     }
 
 
@@ -69,7 +66,6 @@
 
             dataChechBox[_casinoKey][checkBoxEvent.id].data.push({ value1: value1, value2: value2, source: sourceValue })
         }
-        localStorage.setItem('dataChechBox', JSON.stringify(dataChechBox));
     }
 
 
@@ -88,7 +84,6 @@
             };
             dataChechBox[_casinoKey][checkBoxEvent.id].data.push(dataRow)
         }
-        localStorage.setItem('dataChechBox', JSON.stringify(dataChechBox));
     }
 
 
@@ -105,7 +100,6 @@
                 { statusValue: statusValue, source: sourceValue, elmSuffixId: '-sticky_value' }
             )
         }
-        localStorage.setItem('dataChechBox', JSON.stringify(dataChechBox));
     }
 
 
@@ -120,7 +114,6 @@
                 { statusValue: statusValue, source: sourceValue, elmSuffixId: '-choice' }
             )
         }
-        localStorage.setItem('dataChechBox', JSON.stringify(dataChechBox));
     }
 
 
@@ -133,7 +126,6 @@
         dataChechBox[_casinoKey][checkBoxEvent.id].data.push(
             { statusValue: statusValue, source: sourceValue, elmSuffixId: '-automatic' }
         )
-        localStorage.setItem('dataChechBox', JSON.stringify(dataChechBox));
     }
 
 
@@ -146,10 +138,9 @@
         dataChechBox[_casinoKey][checkBoxEvent.id].data.push(
             { statusValue: statusValue, source: sourceValue, elmSuffixId: '-choice' }
         )
-        localStorage.setItem('dataChechBox', JSON.stringify(dataChechBox));
     }
 
-//  <<<< ======================================================================================================= >>>>
+    //  <<<< ======================================================================================================= >>>>
 
     function getDataRestrictionGameGroup(checkBoxEvent, dataChechBox, _casinoKey) {
         const selectDataTo = window.SelectBox.cache['id_restriction_game-0-game_to'];
@@ -160,7 +151,6 @@
             idSelectBlockTo: 'id_restriction_game-0-game_to',
             idSourceValue: 'id_restriction_game-0-selected_source',
         }
-        localStorage.setItem('dataChechBox', JSON.stringify(dataChechBox));
     }
 
     function getDataRestrictionCountryGroup(checkBoxEvent, dataChechBox, _casinoKey) {
@@ -172,7 +162,6 @@
             idSelectBlockTo: 'id_restriction_country-0-country_to',
             idSourceValue: 'id_restriction_country-0-selected_source',
         }
-        localStorage.setItem('dataChechBox', JSON.stringify(dataChechBox));
     }
 
     //  <<<< ======================================================================================================= >>>>
@@ -182,41 +171,46 @@
             'bonus_expiration-group-check_id', 'max_bet-group-check_id',
         ]
         dataChechBox[casinoKey][checkBoxEvent.id].data = [];
-        localStorage.setItem('dataChechBox', JSON.stringify(dataChechBox));
+        // localStorage.setItem('dataChechBox', JSON.stringify(dataChechBox));
 
-        if (checkBoxEvent.checked && checkListId_1.includes(checkBoxEvent.id)) {
-            getDataOptionOne(checkBoxEvent, dataChechBox, casinoKey);
+        if (checkBoxEvent.checked) {
+
+            if (checkListId_1.includes(checkBoxEvent.id)) {
+                getDataOptionOne(checkBoxEvent, dataChechBox, casinoKey);
+            }
+            else if (checkBoxEvent.id === 'restriction_rtp_game-group-check_id') {
+                getDataRtpGameGroup(checkBoxEvent, dataChechBox, casinoKey);
+            }
+            else if (checkBoxEvent.id === 'wagering_bonus_plus_deposit-group-check_id') {
+                getDataWageringBonusPlusDepositGroup(checkBoxEvent, dataChechBox, casinoKey);
+            }
+            else if (checkBoxEvent.id === 'wagering_contribution-group-check_id') {
+                getDataWageringContributionGroup(checkBoxEvent, dataChechBox, casinoKey);
+            }
+
+            else if (checkBoxEvent.id === 'buy_feature-group-check_id') {
+                getDataBuyFeatureGroup(checkBoxEvent, dataChechBox, casinoKey);
+            }
+            else if (checkBoxEvent.id === 'turnover_bonus-group-check_id') {
+                getDataTurnoverBonusGroup(checkBoxEvent, dataChechBox, casinoKey);
+            }
+            else if (checkBoxEvent.id === 'max_bet_automatic-group-check_id') {
+                getDataMaxBetAutomaticGroup(checkBoxEvent, dataChechBox, casinoKey);
+            }
+            else if (checkBoxEvent.id === 'sticky-group-check_id') {
+                getDataStickyGroup(checkBoxEvent, dataChechBox, casinoKey);
+            }
+
+            else if (checkBoxEvent.id === 'restriction_game-group-check_id') {
+                getDataRestrictionGameGroup(checkBoxEvent, dataChechBox, casinoKey);
+            }
+            else if (checkBoxEvent.id === 'restriction_country-group-check_id') {
+                getDataRestrictionCountryGroup(checkBoxEvent, dataChechBox, casinoKey);
+            }
+
         }
 
-        else if (checkBoxEvent.checked && checkBoxEvent.id === 'restriction_rtp_game-group-check_id') {
-            getDataRtpGameGroup(checkBoxEvent, dataChechBox, casinoKey);
-        }
-        else if (checkBoxEvent.checked && checkBoxEvent.id === 'wagering_bonus_plus_deposit-group-check_id') {
-            getDataWageringBonusPlusDepositGroup(checkBoxEvent, dataChechBox, casinoKey);
-        }
-        else if (checkBoxEvent.checked && checkBoxEvent.id === 'wagering_contribution-group-check_id') {
-            getDataWageringContributionGroup(checkBoxEvent, dataChechBox, casinoKey);
-        }
-
-        else if (checkBoxEvent.checked && checkBoxEvent.id === 'buy_feature-group-check_id') {
-            getDataBuyFeatureGroup(checkBoxEvent, dataChechBox, casinoKey);
-        }
-        else if (checkBoxEvent.checked && checkBoxEvent.id === 'turnover_bonus-group-check_id') {
-            getDataTurnoverBonusGroup(checkBoxEvent, dataChechBox, casinoKey);
-        }
-        else if (checkBoxEvent.checked && checkBoxEvent.id === 'max_bet_automatic-group-check_id') {
-            getDataMaxBetAutomaticGroup(checkBoxEvent, dataChechBox, casinoKey);
-        }
-        else if (checkBoxEvent.checked && checkBoxEvent.id === 'sticky-group-check_id') {
-            getDataStickyGroup(checkBoxEvent, dataChechBox, casinoKey);
-        }
-
-        else if (checkBoxEvent.checked && checkBoxEvent.id === 'restriction_game-group-check_id') {
-            getDataRestrictionGameGroup(checkBoxEvent, dataChechBox, casinoKey);
-        }
-        else if (checkBoxEvent.checked && checkBoxEvent.id === 'restriction_country-group-check_id') {
-            getDataRestrictionCountryGroup(checkBoxEvent, dataChechBox, casinoKey);
-        }
+        window.apiAutoFill('PUT', casinoKey, dataChechBox[casinoKey]);
     }
 
 }

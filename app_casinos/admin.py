@@ -16,7 +16,7 @@ from app_casinos.inline_models.inline_models_bonus import (
     BonusRestrictionRtpGameInline, BonusMaxBetInline,
     BonusMaxBetAutomaticInline, BonusBuyFeatureInline,
     BonusSpecialNoteInline, WageringBonusPlusDepositInline,
-    DayOfWeekInline,
+    DayOfWeekInline, SlotsWageringContributionInline,
 )
 
 from app_casinos.inline_models.inline_models_casino import (
@@ -30,7 +30,8 @@ from app_casinos.inline_models.inline_models_loyalty_program import (
 
 from app_casinos.models.bonus import (
     Bonus, BonusType, WageringContributionValue,
-    WageringContribution, BonusSlot, BonusRestrictionGame, BonusSubtype, Day, BonusMinDep, DataAutoFillBonus
+    WageringContribution, BonusSlot, BonusRestrictionGame, BonusSubtype, Day, BonusMinDep, DataAutoFillBonus,
+    SlotsWageringContribution
 )
 from app_casinos.models.casino import (
     Casino, WithdrawalLimit, SisterCasino,
@@ -89,7 +90,7 @@ class LoyaltyProgramAdmin(admin.ModelAdmin):
     )
     fieldsets = (
         ('Loyalty Program', {
-            'fields': ('casino', 'link', 'loyalty_understandable', 'vip_manager')
+            'fields': ('casino', 'link', 'loyalty_understandable', 'vip_manager', 'loyalty_rank')
         }),
     )
 
@@ -100,17 +101,20 @@ class LoyaltyProgramAdmin(admin.ModelAdmin):
 
 
 # ==================================================================================================================== #
+@admin.register(SlotsWageringContribution)
+class SlotsWageringContributionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'bonus', 'value')
+    list_display_links = ('bonus', )
+    search_fields = ('bonus', 'slot__name')
+    autocomplete_fields = ('slot', )
+
+
 @admin.register(BonusRestrictionGame)
 class BonusRestrictionGameAdmin(admin.ModelAdmin):
     list_display = ('id', 'bonus', 'selected_source')
     list_display_links = ('bonus', )
     search_fields = ('bonus', 'game__name')
     autocomplete_fields = ('game', )
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "game":
-            kwargs["queryset"] = Game.objects.none()
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(BonusSlot)
@@ -174,7 +178,8 @@ class BonusAdmin(admin.ModelAdmin):
         PromotionPeriodInline, StickyInline, BonusMaxWinInline, TurnoverBonusInline, DayOfWeekInline,
 
         FreeSpinAmountInline, OneSpinInline, BonusSlotInline, WagerInline,
-        WageringInline, WageringBonusPlusDepositInline, WageringContributionInline,
+        WageringInline, WageringBonusPlusDepositInline, WageringContributionInline, SlotsWageringContributionInline,
+
         BonusRestrictionGameInline, BonusRestrictionCountryInline, BonusRestrictionRtpGameInline,
         BonusMaxBetInline, BonusMaxBetAutomaticInline,
         BonusBuyFeatureInline, BonusSpecialNoteInline,
@@ -187,7 +192,8 @@ class BonusAdmin(admin.ModelAdmin):
             # [classes] Список или кортеж, содержащий дополнительные классы CSS для применения к набору полей:
             "classes": ("extrapretty", ), # "wide", "collapse", "extrapretty"
             'fields': (
-                'casino', 'get_url_casino', 'get_url_bonus_tc', 'link', 'bonus_type', 'bonus_subtype', 'name',
+                'casino', 'get_url_casino', 'get_url_bonus_tc',
+                'link', 'bonus_type', 'bonus_subtype', 'name', 'bonus_rank',
             )
         }),
 
@@ -223,7 +229,7 @@ class BonusAdmin(admin.ModelAdmin):
         if obj.casino: return  obj.casino.name
 # ==================================================================================================================== #
 # ==================================================================================================================== #
-from django.db.models.options import Options
+
 @admin.register(MinDep)
 class MinDepAdmin(admin.ModelAdmin):
     list_display = ('id', 'min_value', 'unlimited', 'selected_source')
@@ -240,7 +246,7 @@ class AffiliatesProgramAdmin(admin.ModelAdmin):
 
 @admin.register(PaymentMethod)
 class PaymentMethodAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'slug')
+    list_display = ('id', 'name')
     list_display_links = ('name', )
 
 
@@ -295,7 +301,6 @@ class GameTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Provider)
 class ProviderAdmin(admin.ModelAdmin):
-    readonly_fields = ('slug',)
     list_display = ('id', 'name', )
 
 @admin.register(Game)

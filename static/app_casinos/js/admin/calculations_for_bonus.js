@@ -14,7 +14,7 @@ function calculateValue(value1, value2, resultValue, maxBet) {
 }
 
 
-function defineActiveField() {
+const defineActiveField = () => {
     let maxBetValue = document.getElementById('id_max_bet-0-value')
 
     const bonusPlusDeposit_1 = document.getElementById('id_bonus_plus_deposit');

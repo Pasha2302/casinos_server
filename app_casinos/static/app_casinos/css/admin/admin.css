@@ -208,7 +208,8 @@ form .aligned div.help {
 }
 
 
-#page-list {
+/* #page-list { */
+.selector .page-list {
     width: 60px;
     height: 30px;
     font-size: 16px;
@@ -221,7 +222,8 @@ form .aligned div.help {
 }
 
 
-#page-list option {
+/* #page-list option { */
+.selector .page-list option {
     font-size: 16px;
     background-color: #fff;
     color: #333;
@@ -236,7 +238,8 @@ form .aligned div.help {
 
 
 
-#send-filter-data {
+/* #send-filter-data { */
+.send-filter-data {
     background-color: #417690;
     color: white;
     padding: 7px 25px;
@@ -251,13 +254,15 @@ form .aligned div.help {
 }
 
 /* Стили для наведения на кнопку */
-#send-filter-data:hover {
+/* #send-filter-data:hover { */
+.send-filter-data:hover {
     background-color: #45a049;
     /* Изменяем цвет фона при наведении */
 }
 
 /* Стили для нажатия на кнопку */
-#send-filter-data:active {
+/* #send-filter-data:active { */
+.send-filter-data:active {
     background-color: #357a38;
     /* Изменяем цвет фона при нажатии */
 }

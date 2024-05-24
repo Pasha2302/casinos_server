@@ -6,11 +6,9 @@ from app_casinos.models.bonus import (
     OneSpin, BonusSlot, Wager, Wagering, WageringContribution,
     BonusRestrictionGame, BonusRestrictionCountry,
     BonusRestrictionRtpGame, BonusMaxBet, BonusMaxBetAutomatic,
-    BonusBuyFeature, BonusSpecialNote, WageringBonusPlusDeposit, DayOfWeek
+    BonusBuyFeature, BonusSpecialNote, WageringBonusPlusDeposit, DayOfWeek, SlotsWageringContribution
 )
-from app_casinos.forms import PromotionPeriodForm, BonusRestrictionGameInlineForm
-from django.forms.models import BaseInlineFormSet
-
+from app_casinos.forms import PromotionPeriodForm, BonusRestrictionGameInlineForm, SlotsWageringContributionInlineForm
 from app_casinos.models.casino import Game
 
 
@@ -62,6 +60,33 @@ class BonusRestrictionRtpGameInline(admin.TabularInline):
     fields = ('value', 'selected_source')
 
 
+
+class SlotsWageringContributionInline(admin.TabularInline):
+    model = SlotsWageringContribution
+    form = SlotsWageringContributionInlineForm
+    can_delete = True
+    extra = 0
+    fields = ('slot', 'value')
+    filter_horizontal = ('slot', )
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        # Получаем queryset всех выбранных игр для данного бонуса
+        # print(f"\n\nRequest GET: {request.GET}\n Request POST: {request.POST}")
+
+        print(f"ARGS:{request.POST=} /// {request.GET=} || {obj=} || {kwargs=}")
+        print(f"\n\n<get_formset> Object (obj): {obj}")
+        print("base_fields['slot'].queryset:", formset.form.base_fields['slot'].queryset)
+        print("kwargs:", kwargs)
+        if request.POST:
+            data_game = request.POST.getlist('slots_wagering-0-slot')
+            print("data_game:", data_game, type(data_game))
+            formset.form.base_fields['slot'].queryset = Game.objects.filter(id__in=data_game)
+            # selected_games = BonusRestrictionGame.objects.filter(bonus=obj).values_list('game', flat=True)
+            # formset.form.base_fields['game'].queryset = Game.objects.filter(id__in=selected_games)
+        return formset
+
+
 class BonusRestrictionGameInline(admin.TabularInline):
     # formset = BonusRestrictionGameInlineFormSet
     model = BonusRestrictionGame
@@ -77,10 +102,11 @@ class BonusRestrictionGameInline(admin.TabularInline):
         formset = super().get_formset(request, obj, **kwargs)
         # Получаем queryset всех выбранных игр для данного бонуса
         # print(f"\n\nRequest GET: {request.GET}\n Request POST: {request.POST}")
-        print(f"ARGS:{request.POST=} /// {request.GET=} || {obj=} || {kwargs=}")
-        print(f"\n\n<get_formset> Object (obj): {obj}")
-        print("base_fields['game'].queryset:", formset.form.base_fields['game'].queryset)
-        print("kwargs:", kwargs)
+
+        # print(f"ARGS:{request.POST=} /// {request.GET=} || {obj=} || {kwargs=}")
+        # print(f"\n\n<get_formset> Object (obj): {obj}")
+        # print("base_fields['game'].queryset:", formset.form.base_fields['game'].queryset)
+        # print("kwargs:", kwargs)
         if request.POST:
             data_game = request.POST.getlist('restriction_game-0-game')
             print("data_game:", data_game, type(data_game))

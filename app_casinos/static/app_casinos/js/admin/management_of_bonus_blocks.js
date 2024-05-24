@@ -19,7 +19,8 @@ const inlineBlockGroups = [
     {
         titleBlock: "WAGERING",
         listIds: [
-            "#turnover_bonus-group", "#wagering_bonus_plus_deposit-group", "#wagering-group", "#wagering_contribution-group",
+            "#slots_wagering-group", "#turnover_bonus-group", "#wagering_bonus_plus_deposit-group",
+            "#wagering-group", "#wagering_contribution-group",
         ]
     },
     {
@@ -280,6 +281,7 @@ function createWhenChangingCasino() {
 
         if (_data) { createDataCheckBox(_data.id); };  // _data.id: casinoKey
         checkingCurrentPage(_data.id);
+        setcalculations();
     });
 }
 

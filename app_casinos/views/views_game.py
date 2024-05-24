@@ -1,14 +1,8 @@
 from rest_framework.pagination import PageNumberPagination
 
 from app_casinos.models.casino import Game
-from app_casinos.serializers import GameSerializer, GameSerializerFilter
+from app_casinos.serializers import GameSerializer
 from app_casinos.views.objects_for_general_import import *
-
-class DeleteAllDataGameAPIView(APIView):
-    def delete(self, request, *args, **kwargs):
-        Game.objects.all().delete()
-
-        return Response({"message": "All data deleted successfully."})
 
 
 class CustomPagination(PageNumberPagination):
@@ -29,6 +23,6 @@ class GameFilterAPIView(APIView):
         # Пример запроса к базе данных (замените на свой код)
         queryset = Game.objects.filter(name__in=data_filter)
         # Сериализация данных
-        serializer = GameSerializerFilter(queryset, many=True)
+        serializer = GameSerializer(queryset, many=True)
 
         return Response(serializer.data)

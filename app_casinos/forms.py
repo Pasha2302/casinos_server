@@ -8,6 +8,90 @@ from django.forms.models import ModelMultipleChoiceField
 from django.core.exceptions import ValidationError
 
 
+
+class CustomFilteredSelectMultipleSlots(FilteredSelectMultiple):
+    def __init__(self, verbose_name, is_stacked, attrs=None, choices=()):
+        super().__init__(verbose_name, is_stacked, attrs, choices)
+
+    # def get_context(self, name, value, attrs):
+    #     context = super().get_context(name, value, attrs)
+    #     context['queryset'] = Game.objects.none()  # Предотвращаем загрузку данных из модели Game
+
+
+class CustomModelMultipleChoiceFieldSlot(ModelMultipleChoiceField):
+    def __init__(self, queryset, **kwargs):
+        super().__init__(queryset, **kwargs)
+
+    def _check_values(self, value):
+        key = self.to_field_name or "pk"
+        try:
+            value = frozenset(value)
+        except TypeError:
+            raise ValidationError(
+                self.error_messages["invalid_list"],
+                code="invalid_list",
+            )
+        for pk in value:
+            try:
+                self.queryset.filter(**{key: pk})
+            except (ValueError, TypeError):
+                raise ValidationError(
+                    self.error_messages["invalid_pk_value"],
+                    code="invalid_pk_value",
+                    params={"pk": pk},
+                )
+        # qs = self.queryset.filter(**{"%s__in" % key: value})
+        qs = Game.objects.filter(**{"%s__in" % key: value})
+        pks = {str(getattr(o, key)) for o in qs}
+        # print("\n\nPKS:", pks)
+        for val in value:
+            # print('\nval:', val)
+            if str(val) not in pks:
+                raise ValidationError(
+                    self.error_messages["invalid_choice"],
+                    code="invalid_choice",
+                    params={"value": val},
+                )
+        return qs
+
+
+class SlotsWageringContributionInlineForm(forms.ModelForm):
+    slot = CustomModelMultipleChoiceFieldSlot(
+        # queryset=BonusRestrictionGame.objects.all(),
+        queryset=Game.objects.none(),
+        # queryset=kwargs.get('instance'),
+        # widget=FilteredSelectMultiple("Game", is_stacked=False),
+        widget=CustomFilteredSelectMultipleSlots("Slots", is_stacked=False),
+        # widget=forms.SelectMultiple(attrs={'size': '10'})
+        required=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Получаем экземпляр бонуса
+        self.bonus_instance = kwargs.get('instance')
+        # Если бонус уже существует, получаем выбранные игры и устанавливаем их как выбранные в поле
+        if self.bonus_instance:
+            selected_slot = self.bonus_instance.slot.all()
+            # queryset_all_game = Game.objects.none()
+            self.fields['slot'].initial = [slot.pk for slot in selected_slot]
+            self.fields['slot'].queryset = selected_slot
+
+    def clean_game(self):
+        print(f"\n\nclean_slot".capitalize(), '!!!')
+        game = self.cleaned_data['slot']
+        print(f"\nSlot data: {game}")
+        print(f"\nself.fields['slot'].queryset: {self.fields['slot'].queryset}")
+        # if game != self.fields['game'].queryset:
+        #     raise forms.ValidationError("Invalid choice. Please select a valid game.")
+        return game
+
+
+
+# =================================================================================================================== #
+# =================================================================================================================== #
+
+
 class CustomFilteredSelectMultiple(FilteredSelectMultiple):
     def __init__(self, verbose_name, is_stacked, attrs=None, choices=()):
         super().__init__(verbose_name, is_stacked, attrs, choices)

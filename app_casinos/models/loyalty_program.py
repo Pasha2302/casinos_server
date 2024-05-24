@@ -103,6 +103,7 @@ class LoyaltyProgram(models.Model):
     link = models.URLField(verbose_name="Loyalty Url", null=True, blank=True)
     loyalty_understandable = models.TextField(verbose_name="Is this loyalty easy to understand", null=True, blank=True)
     vip_manager = models.CharField(max_length=10, choices=CHOICES_VIP_MANAGER, default='')
+    loyalty_rank = models.DecimalField(max_digits=3, decimal_places=1, verbose_name='Loyalty Rank', null=True)
 
     def __str__(self):
         return f"Loyalty Program {self.casino.name}"

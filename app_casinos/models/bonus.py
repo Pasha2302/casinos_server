@@ -237,6 +237,16 @@ class WageringBonusPlusDeposit(models.Model):
             raise ValidationError('At least one value must be specified (Bonus Only or Bonus + Deposit)')
 
 # ----------------------------------------- WAGERING CONTRIBUTION ---------------------------------------------------- #
+
+class SlotsWageringContribution(models.Model):
+    bonus = models.ForeignKey(
+        "Bonus", on_delete=models.CASCADE,
+        related_name='slots_wagering', to_field='slug', null=True, blank=True
+    )
+    slot = models.ManyToManyField(Game, related_name='bonus_slots_wagering',)
+    value = models.IntegerField(verbose_name="Wagering Contribution value %", null=True, blank=True)
+
+
 class WageringContributionValue(models.Model):
     description = models.CharField(verbose_name="Wagering Contribution Description",max_length=255, default=None)
 
@@ -327,12 +337,12 @@ class BonusMaxBet(models.Model):
 class BonusMaxBetAutomatic(models.Model):
     bonus = models.ForeignKey(
         "Bonus", on_delete=models.CASCADE, null=True, related_name='max_bet_automatic', to_field='slug', unique=True)
-    automatic = models.BooleanField(default=False,) # help_text=text_bonus_max_bet_automatic
-    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE, default='', )
+    automatic = models.BooleanField(default=False, blank=True) # help_text=text_bonus_max_bet_automatic
+    selected_source = models.CharField(max_length=20, choices=CHOICES_SOURCE, default='', blank=True)
 
-    def clean(self):
-        if self.selected_source == 'undefined':
-            raise ValidationError('Be sure to specify the data source (Selected source)')
+    # def clean(self):
+    #     if self.selected_source == 'undefined':
+    #         raise ValidationError('Be sure to specify the data source (Selected source)')
 
 
 class BonusBuyFeature(models.Model):
@@ -393,9 +403,10 @@ class Bonus(models.Model):
 
     slug = models.SlugField(verbose_name="Bonus Slug", unique=True, db_index=True, blank=True, max_length=255)
     name = models.CharField(verbose_name="Bonus Name",max_length=255, default=None, help_text=text_bonus_name)
+    bonus_rank = models.DecimalField(max_digits=3, decimal_places=1, verbose_name='Bonus Rank', null=True)
     link = models.URLField(verbose_name="Bonus URL", null=True, blank=True, help_text=text_bonus_url)
 
-    game_providers = models.ManyToManyField(Provider, verbose_name="Providers", related_name='bonus')
+    game_providers = models.ManyToManyField(Provider, verbose_name="Providers", related_name='bonus', blank=True)
     bonus_type = models.ForeignKey(
         "BonusType", null=True, on_delete=models.SET_NULL,
         default=None, related_name="bonus", help_text=text_bonus_type
