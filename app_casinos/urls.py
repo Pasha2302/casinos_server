@@ -2,7 +2,7 @@ from django.urls import path
 from app_casinos.views import (
     views_game, views_test, views_auto_fill_bonus, views_casino
 )
-
+from app_casinos.views.views_start_parser import ParserView
 
 urlpatterns = [
     path('get_data/', views_test.get_data, name='get_data'),
@@ -28,5 +28,7 @@ urlpatterns = [
     ),
     path('add-data-casino/', views_casino.AddDataCasinoAPIView.as_view()),
 
-    path('get-token2302/', views_casino.CSRFTokenAPIView.as_view())
+    path('get-token2302/', views_casino.CSRFTokenAPIView.as_view()),
+
+    path('start-parser/', ParserView.as_view(), name='parser_view'),
 ]

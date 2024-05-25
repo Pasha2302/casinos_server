@@ -1,0 +1,49 @@
+.info-pars {
+  display: none;
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  font-size: 0.8rem;
+  width: 200px;
+  height: auto;
+  border: 2px solid black;
+  padding: 10px;
+  background: #fffdd9;
+  border-radius: 5px;
+  color: black;
+  opacity: 0;
+  transition: opacity 2.0s ease-out;
+}
+
+.info-pars.show {
+  display: block;
+  opacity: 1;
+}
+
+.button-pars {
+  background-color: #417fc6;
+  color: white;
+  padding: 7px 25px;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.3s ease;
+  position: relative;
+  top: -30px;
+  left: 510px;
+}
+
+/* Стили для наведения на кнопку */
+/* #send-filter-data:hover { */
+.button-pars:hover {
+  background-color: #45a049;
+  /* Изменяем цвет фона при наведении */
+}
+
+/* Стили для нажатия на кнопку */
+/* #send-filter-data:active { */
+.button-pars:active {
+  background-color: #18311a;
+  /* Изменяем цвет фона при нажатии */
+}

@@ -43,6 +43,13 @@ from app_casinos.models.casino import (
 from app_casinos.models.loyalty_program import LoyaltyProgram, LevelLoyalty, CashbackPeriod, CashbackType
 from django.utils.safestring import mark_safe
 
+from app_casinos.models.state_program import StateProgram
+
+
+@admin.register(StateProgram)
+class StateProgramAdmin(admin.ModelAdmin):
+    pass
+
 
 @admin.register(DataAutoFillBonus)
 class DataAutoFillBonusAdmin(admin.ModelAdmin):
@@ -61,6 +68,7 @@ class CashbackTypeAdmin(admin.ModelAdmin):
 
 @admin.register(LevelLoyalty)
 class LevelLoyaltyAdmin(admin.ModelAdmin):
+    change_form_template = 'admin/loyalty_prog_change_form.html'
     list_display = ('id', 'display_casino_name', 'level',)
     list_display_links = ('id', 'display_casino_name',)
     search_fields = ('program__casino__name', 'level')
@@ -352,13 +360,18 @@ class CasinoAdmin(admin.ModelAdmin):
         'payment_methods', 'sisters_casinos',
     )
 
-    list_display = ('name', 'url', 'shortened_notes', )  # 'display_images',
+    list_display = ('name', 'url', 'shortened_notes', 'is_pars_data', )  # 'display_images',
     list_display_links = ('name', 'url', )  # 'display_images',
 
     inlines = (
         LoyaltyProgramInline, CasinoImageInline, BonusInline, WithdrawalLimitInline,
         MinWageringInline, MinDepInline, AccountDataInline, SocialBonusInline,
     )
+
+    class Media:
+        js = ('app_casinos/js/admin/casino_parser.js',)
+        css = { 'all': ('app_casinos/css/admin/casino_parser.css',) }
+
     autocomplete_fields = ('affiliate', 'theme')
     fieldsets = (
 

@@ -293,17 +293,66 @@ function setDataChechBox() {
         // checkingCurrentPage();
     }
 }
+
+
+const createElementsPagination = (targetElement, indexId) => {
+    // Находим элемент, в который нужно встроить блок кода:
+    // let targetElement = document.querySelector('#restriction_game-0 .selector-available h2');
+
+    // Создаем элементы <select>, <label> и <button> с нужными атрибутами и текстом
+    let selectElement = document.createElement('select');
+    let labelElement = document.createElement('label');
+    let buttonElement = document.createElement('button');
+
+    selectElement.setAttribute('id', 'page-list' + `-${indexId}`);
+    selectElement.setAttribute('class', 'page-list');
+
+    buttonElement.setAttribute('id', 'send-filter-data' + `-${indexId}`);
+    buttonElement.setAttribute('class', 'send-filter-data');
+    buttonElement.setAttribute('type', 'button');
+    buttonElement.textContent = 'Send Filter';
+
+    // Устанавливаем атрибуты и текст для label
+    labelElement.textContent = 'Page:';
+    labelElement.setAttribute('for', 'page-list' + `-${indexId}`);
+    labelElement.setAttribute('class', 'select-game-label');
+
+    // Вставляем элементы в DOM
+    targetElement.appendChild(labelElement);
+    targetElement.appendChild(selectElement);
+    selectElement.insertAdjacentElement('afterend', buttonElement);
+}
+
+
+const createPagination = () => {
+    const slotBlock = document.querySelector('#slots_wagering-group');
+    const restrictionGame = document.querySelector('#restriction_game-0 .selector-available h2');
+    const slotsFormsElms = slotBlock.querySelectorAll('.form-row.dynamic-slots_wagering .field-slot .selector-available h2');
+    const listTargetElementsFilter = [restrictionGame, ...slotsFormsElms];
+    listTargetElementsFilter.forEach( (s, i) => createElementsPagination(s, i) );
+}
+
+
 // =============================================================================== //
 
 $(document).ready(function () {
-    addBlocks();
-    setIdBlocksFieldSet();
+    const setIntervalId = setInterval(() => {
+        const checkElement = document.querySelector('#slots_wagering-group');
+        if (checkElement) {
+            clearInterval(setIntervalId);
 
-    combiningBlocks(inlineBlockGroups);
-    sortingBasicBlocks();
+            addBlocks();
+            setIdBlocksFieldSet();
 
-    checkErrorFields(allInlineBlocks);
+            combiningBlocks(inlineBlockGroups);
+            sortingBasicBlocks();
 
-    createWhenChangingCasino();
-    setDataChechBox();
+            checkErrorFields(allInlineBlocks);
+
+            createWhenChangingCasino();
+            createPagination();
+            setDataChechBox();
+        }
+    }, 300)
+    
 });

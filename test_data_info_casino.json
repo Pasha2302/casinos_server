@@ -1,0 +1,70 @@
+[
+    {
+        "backend": {
+            "casino_slug": "winOui-casino"
+        },
+        "owner": "Next To You B.V.",
+        "established_year": "2018",
+        "sisters_casinos": [
+            "Madnix Casino",
+            "Wild Sultan Casino",
+            "SlotsMillion Casino"
+        ],
+        "providers": [
+            "NetEnt",
+            "Nolimit City",
+            "Betsoft Gaming",
+            "Pragmatic Play",
+            "ELK Studios",
+            "Big Time Gaming",
+            "Yggdrasil Gaming",
+            "Tom Horn",
+            "Quickspin",
+            "Push Gaming",
+            "Evolution Gaming",
+            "GameArt",
+            "Play'n GO",
+            "Red Tiger Gaming",
+            "Wazdan",
+            "PariPlay",
+            "Amatic",
+            "Playson",
+            "Red Rake Gaming",
+            "Thunderkick",
+            "1X2 Gaming",
+            "Booming Games",
+            "Iron Dog Studio",
+            "Booongo",
+            "Relax Gaming",
+            "Amusnet (EGT)",
+            "Aviatrix",
+            "4ThePlayer",
+            "Electric Elephant",
+            "Blue Guru Games",
+            "Gamzix",
+            "Four Leaf Gaming",
+            "Fugaso",
+            "Felix Gaming",
+            "Felt Gaming",
+            "Fantasma",
+            "Northern Lights Gaming",
+            "Max Win Gaming",
+            "Hacksaw Gaming",
+            "Reel Play",
+            "Print Studios",
+            "Storm Gaming",
+            "Spinthon",
+            "STHLMGAMING",
+            "Silverback Gaming",
+            "Skywind Group"
+        ],
+        "payment_methods": [
+            "Neteller",
+            "VISA",
+            "Mastercard",
+            "Bank transfer",
+            "eZeeWallet",
+            "Cashlib"
+        ]
+    }
+]
